@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from numpy import *
+from sympy import *
 
 class Utils:
 
@@ -8,10 +8,10 @@ class Utils:
     """
     Nesterov, p.181
     """
-    return float(sqrt((hessian*u).T*u))
+    return sqrt((hessian*u).transpose()*u)[0,0]
 
   def LocalNormA(u, hessian):
     """
     Nesterov, p.181
     """
-    return float(sqrt((hessian.I*u).T*u))
+    return sqrt((hessian.inv()*u).transpose()*u)[0,0]
