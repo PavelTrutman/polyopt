@@ -8,10 +8,10 @@ class Utils:
     """
     Nesterov, p.181
     """
-    return sqrt((hessian*u).transpose()*u)[0,0]
+    return N(sqrt((hessian*u).transpose()*u)[0,0])
 
   def LocalNormA(u, hessian):
     """
     Nesterov, p.181
     """
-    return sqrt((hessian.inv()*u).transpose()*u)[0,0]
+    return N(sqrt((hessian.inv()*u).transpose()*u)[0,0])
