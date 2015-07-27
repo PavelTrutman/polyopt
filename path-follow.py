@@ -8,9 +8,7 @@ from utils import Utils
 # s.t. I_3 + A_0*x_0 + A_1*x_1 >= 0
 
 # initialization of the problem
-c = Matrix([[3], [-2]])
-#A0 = Matrix([[3, 5, 13], [5, 8, 7], [13, 7, 9]])
-#A1 = Matrix([[11, 2, 3], [2, 3, 4], [3, 4, 5]])
+c = Matrix([[1], [1]])
 A0 = Matrix([[1, 1, 0],
              [1, 1, 0],
              [0, 0, 0]])
