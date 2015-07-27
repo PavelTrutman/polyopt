@@ -137,8 +137,23 @@ while True:
   print('\nk = ' + str(k))
   FdS = Fd.subs([(x0, x[0, 0]), (x1, x[1, 0])])
   FddS = Fdd.subs([(x0, x[0, 0]), (x1, x[1, 0])])
-  t = t + gamma/Utils.LocalNormA(c, FddS)
-  x = x - FddS.inv()*(t*c+FdS)
+  F = eye(3) + A0*x[0, 0] + A1*x[1, 0]
+  Fi = F.inv()
+  Fi0 = A0*Fi
+  Fi1 = A1*Fi
+  g0 = -trace(Fi0)
+  g1 = -trace(Fi1)
+  g = Matrix([[g0], [g1]])
+  h00 = trace(Fi0**2)
+  h11 = trace(Fi1**2)
+  h01 = trace(Fi0*Fi1)
+  H = Matrix([[h00, h01], [h01, h11]])
+
+  print('FdS - g = ' + str(FdS - g))
+  print('FddS - H = ' + str(FddS - H))
+
+  t = t + gamma/Utils.LocalNormA(c, H)
+  x = x - H.inv()*(t*c+g)
   print('t = ' + str(t))
   print('x = ' + str(x))
   print('Breaking condition = ' + str(eps*t))
