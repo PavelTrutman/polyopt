@@ -14,16 +14,16 @@ c = Matrix([[3], [-2]])
 A0 = Matrix([[1, 1, 0],
              [1, 1, 0],
              [0, 0, 0]])
-A1 = Matrix([[1, 1, 1],
-             [1, 0, 0],
-             [1, 0, 1]])
+A1 = Matrix([[1, 0, 1],
+             [0, 0, 1],
+             [1, 1, 1]])
 
 # symbolic variables
 x0 = Symbol('x0')
 x1 = Symbol('x1')
 
 # self-concordant barrier
-X = simplify(eye(3) + A0*x0 + A1*x1)
+X = eye(3) + A0*x0 + A1*x1
 print('X = ' + str(X))
 F = -log(X.det())
 print('F = ' + str(F))
