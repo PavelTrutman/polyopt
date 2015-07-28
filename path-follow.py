@@ -74,10 +74,10 @@ while True:
   FddS = Fdd.subs([(x0, y[0, 0]), (x1, y[1, 0])])
 
   # print eigenvalues
-  try:
-    print('EIG(X)  = ' + str(re(N(list(XS.eigenvals())[0]))) + ', ' + str(re(N(list(XS.eigenvals())[1]))) + ', ' + str(re(N(list(XS.eigenvals())[2]))))
-  except IndexError:
-    print('EIG(X)  = ' + str(re(N(list(XS.eigenvals())[0]))) + ', ' + str(re(N(list(XS.eigenvals())[1]))))
+  eigs = list(XS.eigenvals())
+  eigs = [ re(N(eig)) for eig in eigs ]
+  eigs.sort()
+  print('EIG = ' + str(eigs))
 
   # breaking condition
   #print('Breaking condition = ' + str(Utils.LocalNormA(FdS, FddS)))
@@ -118,10 +118,10 @@ while True:
 
   # print eigenvalues
   XS = X.subs([(x0, x[0, 0]), (x1, x[1, 0])])
-  try:
-    print('EIG(X)  = ' + str(re(N(list(XS.eigenvals())[0]))) + ', ' + str(re(N(list(XS.eigenvals())[1]))) + ', ' + str(re(N(list(XS.eigenvals())[2]))))
-  except IndexError:
-    print('EIG(X)  = ' + str(re(N(list(XS.eigenvals())[0]))) + ', ' + str(re(N(list(XS.eigenvals())[1]))))
+  eigs = list(XS.eigenvals())
+  eigs = [ re(N(eig)) for eig in eigs ]
+  eigs.sort()
+  print('EIG = ' + str(eigs))
 
   # breaking condition
   print('Breaking condition = ' + str(eps*t))
