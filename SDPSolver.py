@@ -10,14 +10,36 @@ import sys
 beta = 1/9
 gamma = 5/36
 
-class SDPSolver:
 
-  # min c_0*x_0 + c_1*x_1
-  # s.t. I_3 + A_0*x_0 + A_1*x_1 >= 0
+class SDPSolver:
+  """
+  Class providing SDP Solver.
+
+  Solves problem in a form:
+    min c0*x0 + c1*x1
+    s.t. I_3 + A0*x0 + A1*x1 >= 0
+  where A0 and A1 are symetric matrices.
+
+  by Pavel Trutman, pavel.tutman@fel.cvut.cz
+  """
+
 
   def __init__(self, c, A0, A1):
-    # initialization of the problem
+    """
+    Initialization of the problem:
+      min c0*x0 + c1*x1
+      s.t. I_3 + A0*x0 + A1*x1 >= 0
 
+    Args:
+      c (Matrix)
+      A0 (Matrix)
+      A1 (Matrix)
+
+    Returns:
+      None
+    """
+    
+    # initialization of the problem
     self.c = c
     self.A0 = A0
     self.A1 = A1
@@ -50,8 +72,17 @@ class SDPSolver:
     self.logStdout = logging.getLogger()
 
 
-
   def setDrawPlot(self, drawPlot):
+    """
+    Enables or disables the drawing of the graph.
+
+    Args:
+      drawPlot (bool): True - draw graph, False - do not draw graph
+    
+    Returns:
+      None
+    """
+
     self.drawPlot = drawPlot
 
     if self.drawPlot:
@@ -74,24 +105,49 @@ class SDPSolver:
       self.gnuplot.show(self.plot)
 
 
-
   def setPrintOutput(self, printOutput):
+    """
+    Enables or disables printing of the computation state.
+
+    Args:
+      printOuput (bool): True - enables the output, False - disables the output
+
+    Returns:
+      None
+    """
+
     if printOutput:
       self.logStdout.setLevel(logging.INFO)
     else:
       self.logStdout.setLevel(logging.WARNING)
 
 
-
   def solve(self, start):
+    """
+    Solve the problem from the starting point.
+
+    Args:
+      start (Matrix): the starting point of the algorithm
+
+    Returns:
+      Matrix: found optimal solution
+    """
+
     x0 = self.auxFollow(start)
     return self.mainFollow(x0)
 
 
-
   def auxFollow(self, start):
+    """
+    Auxiliary path-following algorithm [Nesterov, p. 205]
 
-    # Auxiliary path-following scheme [Nesterov, p. 205]
+    Args:
+      start (Matrix): the starting point of the algorithm
+
+    Returns:
+      Matrix: approximation of the analytic center
+    """
+
     t = 1
     k = 0
 
@@ -145,8 +201,17 @@ class SDPSolver:
     return x
 
 
-
   def mainFollow(self, x):
+    """
+    Main following algorithm [Nesterov, p. 202]
+
+    Args:
+      x (Matrix): good approximation of the analytic center, used as the starting point of the algorithm
+
+    Returns:
+      Matrix: found optimal solution of the problem
+    """
+
     x0All = [x[0, 0]]
     x1All = [x[1, 0]]
 
