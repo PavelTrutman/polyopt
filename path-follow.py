@@ -1,17 +1,17 @@
 #!/usr/bin/python3
 
-#from numpy import *
 from sympy import *
 from utils import Utils
+import pyGnuplot as gp
 
 # min c_0*x_0 + c_1*x_1
 # s.t. I_3 + A_0*x_0 + A_1*x_1 >= 0
 
 # initialization of the problem
 c = Matrix([[1], [1]])
-A0 = Matrix([[1, 0, 0],
-             [0, -1, 0],
-             [0, 0, -1]])
+A0 = Matrix([[1,  0,  0],
+             [0, -1,  0],
+             [0,  0, -1]])
 A1 = Matrix([[0, 1, 0],
              [1, 0, 1],
              [0, 1, 0]])
@@ -40,6 +40,25 @@ Fddx0x1 = diff(Fdx0, x1)
 Fdd = Matrix([[Fddx0x0, Fddx0x1], [Fddx0x1, Fddx1x1]])
 #print('Fdd = ' + str(simplify(Fdd)))
 
+# plot and save the set into file
+print('det(X) = ' + str(X.det()))
+gnuplot = gp.gnuplot()
+gnuplot.set('view map')
+gnuplot('set contour')
+gnuplot('set cntrparam levels discrete 0')
+gnuplot('unset surface')
+gnuplot('set isosamples 2000, 2000')
+gnuplot('set table "setPlot.dat"')
+setPlot = gnuplot.splot(str(X.det().subs([(x0, Symbol('x')), (x1, Symbol('y'))])))
+gnuplot.newXterm()
+gnuplot.show(setPlot)
+gnuplot('unset table')
+gnuplot('reset')
+
+# plot the set
+plot = gnuplot.plot('"setPlot.dat" using 1:2', w = 'lines', title = 'Set boundary')
+gnuplot.show(plot)
+
 # some constants
 beta = 1/9
 gamma = 5/36
@@ -49,6 +68,8 @@ t = 1
 k = 0
 # starting point
 y = Matrix([[0], [0]])
+y0All = [y[0, 0]]
+y1All = [y[1, 0]]
 
 FdS0 = Fd.subs([(x0, y[0, 0]), (x1, y[1, 0])])
 #print('\n\nFdS0 = ' + str(FdS0))
@@ -68,6 +89,9 @@ while True:
   #print('t = ' + str(t))
   print('y = ' + str(y))
 
+  y0All.append(y[0, 0])
+  y1All.append(y[1, 0])
+
   # substitute to find gradient and hessian
   XS = X.subs([(x0, y[0, 0]), (x1, y[1, 0])])
   FdS = Fd.subs([(x0, y[0, 0]), (x1, y[1, 0])])
@@ -86,6 +110,12 @@ while True:
 
 # prepare x
 x = y - FddS.inv()*FdS
+x0All = [x[0, 0]]
+x1All = [x[1, 0]]
+
+# plot auxiliary path
+plot.add(y1All, xvals = y0All, title = 'Auxiliary path', w = 'points', pt = 1)
+gnuplot.show(plot)
 
 # Main path-following scheme [Nesterov, p. 202]
 print('\nMAIN PATH-FOLLOWING')
@@ -98,9 +128,6 @@ k = 0
 # print the input condition to verify that is satisfied
 print('Input condition = ' + str(Utils.LocalNormA(Fd.subs([(x0, x[0, 0]), (x1, x[1, 0])]), Fdd.subs([(x0, x[0, 0]), (x1, x[1, 0])]))))
 
-print('\nPress enter to continue')
-input()
-
 while True:
   k += 1
   print('\nk = ' + str(k))
@@ -112,6 +139,9 @@ while True:
   # iteration step
   t = t + gamma/Utils.LocalNormA(c, FddS)
   x = x - FddS.inv()*(t*c+FdS)
+
+  x0All.append(x[0, 0])
+  x1All.append(x[1, 0])
 
   #print('t = ' + str(t))
   print('x = ' + str(x))
@@ -128,3 +158,9 @@ while True:
   if eps*t >= nu + (beta + sqrt(nu))*beta/(1 - beta):
     break
 
+# plot main path
+plot.add(x1All, xvals = x0All, title = 'Main path', w = 'points', pt = 1)
+gnuplot.show(plot)
+
+print('\nPress enter to continue')
+input()
