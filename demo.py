@@ -14,6 +14,7 @@ startPoint = Matrix([[0], [0]])
 
 
 problem = SDPSolver(c, A0, A1)
-problem.enablePlot(True)
+problem.setDrawPlot(True)
+problem.setPrintOutput(True)
 x = problem.solve(startPoint)
 print(x)

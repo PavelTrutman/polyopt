@@ -3,6 +3,8 @@
 from sympy import *
 from utils import Utils
 import pyGnuplot as gp
+import logging
+import sys
 
 # some constants
 beta = 1/9
@@ -40,15 +42,19 @@ class SDPSolver:
     Fddx0x1 = diff(Fdx0, self.x1)
     self.Fdd = Matrix([[Fddx0x0, Fddx0x1], [Fddx0x1, Fddx1x1]])
 
-    # enable plotting
-    self.plotEnable = False
+    # disable plotting
+    self.drawPlot = False
+
+    # disable output
+    logging.basicConfig(stream = sys.stdout, format = '%(message)s')
+    self.logStdout = logging.getLogger()
 
 
 
-  def enablePlot(self, plotEnable):
-    self.plotEnable = plotEnable
+  def setDrawPlot(self, drawPlot):
+    self.drawPlot = drawPlot
 
-    if self.plotEnable:
+    if self.drawPlot:
       # plot and save the set into file
       self.gnuplot = gp.gnuplot()
       self.gnuplot.set('view map')
@@ -66,6 +72,14 @@ class SDPSolver:
       # plot the set
       self.plot = self.gnuplot.plot('"setPlot.dat" using 1:2', w = 'lines', title = 'Set boundary')
       self.gnuplot.show(self.plot)
+
+
+
+  def setPrintOutput(self, printOutput):
+    if printOutput:
+      self.logStdout.setLevel(logging.INFO)
+    else:
+      self.logStdout.setLevel(logging.WARNING)
 
 
 
@@ -88,18 +102,19 @@ class SDPSolver:
 
     FdS0 = self.Fd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
 
-    print('AUXILIARY PATH-FOLLOWING')
+    self.logStdout.info('AUXILIARY PATH-FOLLOWING')
+
     FdS = self.Fd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
     FddS = self.Fdd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
     while True:
       k += 1
-      print('\nk = ' + str(k))
+      self.logStdout.info('\nk = ' + str(k))
 
       # iteration step
       t = t - gamma/Utils.LocalNormA(FdS0, FddS)
       y = y - FddS.inv()*(t*FdS0 + FdS)
-      #print('t = ' + str(t))
-      print('y = ' + str(y))
+      #self.logStdout.info('t = ' + str(t))
+      self.logStdout.info('y = ' + str(y))
 
       self.y0All.append(y[0, 0])
       self.y1All.append(y[1, 0])
@@ -110,13 +125,13 @@ class SDPSolver:
       FddS = self.Fdd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
 
       # print eigenvalues
-      eigs = list(XS.eigenvals())
-      eigs = [ re(N(eig)) for eig in eigs ]
-      eigs.sort()
-      print('EIG = ' + str(eigs))
+      if self.logStdout.isEnabledFor(logging.INFO):
+        eigs = list(XS.eigenvals())
+        eigs = [ re(N(eig)) for eig in eigs ]
+        eigs.sort()
+        self.logStdout.info('EIG = ' + str(eigs))
 
       # breaking condition
-      #print('Breaking condition = ' + str(Utils.LocalNormA(FdS, FddS)))
       if Utils.LocalNormA(FdS, FddS) <= sqrt(beta)/(1 + sqrt(beta)):
         break
 
@@ -124,7 +139,7 @@ class SDPSolver:
     x = y - FddS.inv()*FdS
 
     # plot auxiliary path
-    if self.plotEnable:
+    if self.drawPlot:
       self.plot.add(self.y1All, xvals = self.y0All, title = 'Auxiliary path', w = 'points', pt = 1)
       self.gnuplot.show(self.plot)
     return x
@@ -136,7 +151,7 @@ class SDPSolver:
     x1All = [x[1, 0]]
 
     # Main path-following scheme [Nesterov, p. 202]
-    print('\nMAIN PATH-FOLLOWING')
+    self.logStdout.info('\nMAIN PATH-FOLLOWING')
 
     # initialization of the iteration process
     t = 0
@@ -144,11 +159,11 @@ class SDPSolver:
     k = 0
 
     # print the input condition to verify that is satisfied
-    print('Input condition = ' + str(Utils.LocalNormA(self.Fd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])]), self.Fdd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])]))))
+    self.logStdout.info('Input condition = ' + str(Utils.LocalNormA(self.Fd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])]), self.Fdd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])]))))
 
     while True:
       k += 1
-      print('\nk = ' + str(k))
+      self.logStdout.info('\nk = ' + str(k))
 
       # substitute to find gradient and hessian
       FdS = self.Fd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])])
@@ -161,27 +176,27 @@ class SDPSolver:
       x0All.append(x[0, 0])
       x1All.append(x[1, 0])
 
-      #print('t = ' + str(t))
-      print('x = ' + str(x))
+      self.logStdout.info('t = ' + str(t))
+      self.logStdout.info('x = ' + str(x))
 
-      # print eigenvalues
-      XS = self.X.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])])
-      eigs = list(XS.eigenvals())
-      eigs = [ re(N(eig)) for eig in eigs ]
-      eigs.sort()
-      print('EIG = ' + str(eigs))
+      if self.logStdout.isEnabledFor(logging.INFO):
+        # print eigenvalues
+        XS = self.X.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])])
+        eigs = list(XS.eigenvals())
+        eigs = [ re(N(eig)) for eig in eigs ]
+        eigs.sort()
+        self.logStdout.info('EIG = ' + str(eigs))
 
       # breaking condition
-      print('Breaking condition = ' + str(eps*t))
+      self.logStdout.info('Breaking condition = ' + str(eps*t))
       if eps*t >= self.nu + (beta + sqrt(self.nu))*beta/(1 - beta):
         break
 
     # plot main path
-    if self.plotEnable:
+    if self.drawPlot:
       self.plot.add(x1All, xvals = x0All, title = 'Main path', w = 'points', pt = 1)
       self.gnuplot.show(self.plot)
-
-    print('\nPress enter to continue')
-    input()
+      print('\nPress enter to continue')
+      input()
 
     return x
