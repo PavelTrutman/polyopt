@@ -39,6 +39,8 @@ class SDPSolver:
       None
     """
     
+    self.solved = False
+
     # initialization of the problem
     self.c = c
     self.A0 = A0
@@ -257,6 +259,9 @@ class SDPSolver:
       if eps*t >= self.nu + (beta + sqrt(self.nu))*beta/(1 - beta):
         break
 
+    self.solved = True
+    self.result = x
+
     # plot main path
     if self.drawPlot:
       self.plot.add(x1All, xvals = x0All, title = 'Main path', w = 'points', pt = 1)
@@ -265,3 +270,27 @@ class SDPSolver:
       input()
 
     return x
+
+
+  def eigenvalues(self):
+    """
+    Returns eigenvalues of the barrier matrix at the optimal point.
+
+    Returns:
+      list: eigenvalues
+
+    Throws:
+      ValueError: when the problem has not been solved yet
+    """
+
+    if self.solved:
+      XS = self.X.subs([(self.x0, self.result[0, 0]), (self.x1, self.result[1, 0])])
+      eigs = list(XS.eigenvals())
+      eigs = [ re(N(eig)) for eig in eigs ]
+      eigs.sort()
+      return eigs
+    else:
+      raise ValueError('The problem has not been solved yet so the eignevalues can not be evaluated.')
+    
+
+

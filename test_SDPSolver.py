@@ -48,8 +48,20 @@ class SDPSolverTest(unittest.TestCase):
     # test all cases
     for i in range(0, len(parameters)):
       with self.subTest(i = i):
+        # init prolem
         problem = SDPSolver(parameters[i]['c'], parameters[i]['A0'], parameters[i]['A1'])
+
+        # solve and compare the results
         self.assertLessEqual(norm(problem.solve(parameters[i]['startPoint']) - parameters[i]['result']), 10**(-5))
+
+        # the matrix have to be semidefinite positive (eigenvalues >= 0)
+        eigs = problem.eigenvalues()
+        for eig in eigs:
+          self.assertGreaterEqual(eig, 0)
+
+        # the smallest eigenvalue has to be near zero
+        self.assertLessEqual(eigs[0], 10**(-3))
+
 
 
   def testSpecificProblemUnboundedSet(self):

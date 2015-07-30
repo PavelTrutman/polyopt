@@ -35,5 +35,7 @@ problem.setPrintOutput(True)
 
 # solve!
 x = problem.solve(startPoint)
-
 print(x)
+
+# print eigenvalues
+#print(problem.eigenvalues())
