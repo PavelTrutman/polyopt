@@ -48,25 +48,6 @@ class SDPSolver:
     self.nu = 3
     self.dim = 2
 
-    # symbolic variables
-    self.x0 = Symbol('x0')
-    self.x1 = Symbol('x1')
-
-    # self-concordant barrier
-    self.X = eye(3) + self.A0*self.x0 + self.A1*self.x1
-    #F = -log(self.X.det())
-
-    # first symbolic derivation
-    #Fdx0 = diff(F, self.x0)
-    #Fdx1 = diff(F, self.x1)
-    #self.Fd = Matrix([[Fdx0], [Fdx1]])
-
-    # symbolic hessian
-    #Fddx0x0 = diff(Fdx0, self.x0)
-    #Fddx1x1 = diff(Fdx1, self.x1)
-    #Fddx0x1 = diff(Fdx0, self.x1)
-    #self.Fdd = Matrix([[Fddx0x0, Fddx0x1], [Fddx0x1, Fddx1x1]])
-
     # disable plotting
     self.drawPlot = False
 
@@ -89,6 +70,13 @@ class SDPSolver:
     self.drawPlot = drawPlot
 
     if self.drawPlot:
+      # symbolic variables
+      x = Symbol('x')
+      y = Symbol('y')
+
+      # self-concordant barrier
+      X = eye(3) + self.A0*x + self.A1*y
+
       # plot and save the set into file
       self.gnuplot = gp.gnuplot()
       self.gnuplot.set('view map')
@@ -97,7 +85,7 @@ class SDPSolver:
       self.gnuplot('unset surface')
       self.gnuplot('set isosamples 2000, 2000')
       self.gnuplot('set table "setPlot.dat"')
-      setPlot = self.gnuplot.splot(str(self.X.det().subs([(self.x0, Symbol('x')), (self.x1, Symbol('y'))])))
+      setPlot = self.gnuplot.splot(str(X.det()))
       self.gnuplot.newXterm()
       self.gnuplot.show(setPlot)
       self.gnuplot('unset table')
@@ -159,19 +147,12 @@ class SDPSolver:
     y0All = [y[0, 0]]
     y1All = [y[1, 0]]
 
-    #FdSa0 = self.Fd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
-    A = eye(3) + self.A0*y[0, 0] + self.A1*y[1, 0]
-    Ainv = A.inv()
-    Ainv0 = Ainv*self.A0
-    Ainv1 = Ainv*self.A1
-    Fd = Matrix([[-trace(Ainv0)], [-trace(Ainv1)]])
-    Fdd = Matrix([[trace(Ainv0**2), trace(Ainv0*Ainv1)], [trace(Ainv0*Ainv1), trace(Ainv1**2)]])
+    # gradient and hessian
+    Fd, Fdd = Utils.gradientHessian(self.A0, self.A1, y[0, 0], y[1, 0])
     Fd0 = Fd
 
     self.logStdout.info('AUXILIARY PATH-FOLLOWING')
 
-    #FdS = self.Fd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
-    #FddS = self.Fdd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
     while True:
       k += 1
       self.logStdout.info('\nk = ' + str(k))
@@ -185,19 +166,12 @@ class SDPSolver:
       y0All.append(y[0, 0])
       y1All.append(y[1, 0])
 
-      # substitute to find gradient and hessian
-      #XS = self.X.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
-      #FdS = self.Fd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
-      #FddS = self.Fdd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
-      A = eye(3) + self.A0*y[0, 0] + self.A1*y[1, 0]
-      Ainv = A.inv()
-      Ainv0 = Ainv*self.A0
-      Ainv1 = Ainv*self.A1
-      Fd = Matrix([[-trace(Ainv0)], [-trace(Ainv1)]])
-      Fdd = Matrix([[trace(Ainv0**2), trace(Ainv0*Ainv1)], [trace(Ainv0*Ainv1), trace(Ainv1**2)]])
+      # gradient and hessian
+      Fd, Fdd = Utils.gradientHessian(self.A0, self.A1, y[0, 0], y[1, 0])
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
+        A = eye(3) + self.A0*y[0, 0] + self.A1*y[1, 0]
         eigs = list(A.eigenvals())
         eigs = [ re(N(eig)) for eig in eigs ]
         eigs.sort()
@@ -240,28 +214,15 @@ class SDPSolver:
     k = 0
 
     # print the input condition to verify that is satisfied
-    #self.logStdout.info('Input condition = ' + str(Utils.LocalNormA(self.Fd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])]), self.Fdd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])]))))
-    A = eye(3) + self.A0*x[0, 0] + self.A1*x[1, 0]
-    Ainv = A.inv()
-    Ainv0 = Ainv*self.A0
-    Ainv1 = Ainv*self.A1
-    Fd = Matrix([[-trace(Ainv0)], [-trace(Ainv1)]])
-    Fdd = Matrix([[trace(Ainv0**2), trace(Ainv0*Ainv1)], [trace(Ainv0*Ainv1), trace(Ainv1**2)]])
+    Fd, Fdd = Utils.gradientHessian(self.A0, self.A1, x[0, 0], x[1, 0])
     self.logStdout.info('Input condition = ' + str(Utils.LocalNormA(Fd, Fdd)))
 
     while True:
       k += 1
       self.logStdout.info('\nk = ' + str(k))
 
-      # substitute to find gradient and hessian
-      #FdS = self.Fd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])])
-      #FddS = self.Fdd.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])])
-      A = eye(3) + self.A0*x[0, 0] + self.A1*x[1, 0]
-      Ainv = A.inv()
-      Ainv0 = Ainv*self.A0
-      Ainv1 = Ainv*self.A1
-      Fd = Matrix([[-trace(Ainv0)], [-trace(Ainv1)]])
-      Fdd = Matrix([[trace(Ainv0**2), trace(Ainv0*Ainv1)], [trace(Ainv0*Ainv1), trace(Ainv1**2)]])
+      # gradient and hessian
+      Fd, Fdd = Utils.gradientHessian(self.A0, self.A1, x[0, 0], x[1, 0])
 
       # iteration step
       t = t + gamma/Utils.LocalNormA(self.c, Fdd)
@@ -275,7 +236,6 @@ class SDPSolver:
 
       if self.logStdout.isEnabledFor(logging.INFO):
         # print eigenvalues
-        #XS = self.X.subs([(self.x0, x[0, 0]), (self.x1, x[1, 0])])
         A = eye(3) + self.A0*x[0, 0] + self.A1*x[1, 0]
         eigs = list(A.eigenvals())
         eigs = [ re(N(eig)) for eig in eigs ]
@@ -312,7 +272,6 @@ class SDPSolver:
     """
 
     if self.solved:
-      #XS = self.X.subs([(self.x0, self.result[0, 0]), (self.x1, self.result[1, 0])])
       A = eye(3) + self.A0*self.result[0, 0] + self.A1*self.result[1, 0]
       eigs = list(A.eigenvals())
       eigs = [ re(N(eig)) for eig in eigs ]
