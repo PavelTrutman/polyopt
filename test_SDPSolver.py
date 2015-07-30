@@ -13,7 +13,7 @@ class SDPSolverTest(unittest.TestCase):
   """
 
 
-  def testSpecificProblem(self):
+  def testSpecificProblemBoundedSet(self):
     """
     Some specific problems have been choosen to be tested.
     """
@@ -50,6 +50,33 @@ class SDPSolverTest(unittest.TestCase):
       with self.subTest(i = i):
         problem = SDPSolver(parameters[i]['c'], parameters[i]['A0'], parameters[i]['A1'])
         self.assertLessEqual(norm(problem.solve(parameters[i]['startPoint']) - parameters[i]['result']), 10**(-5))
+
+
+  def testSpecificProblemUnboundedSet(self):
+    """
+    Some specific problems have been choosen to be tested. The set is unbounded, so it fails in the auxiliary path-follow part.
+    """
+
+
+    # prepare set of testing cases
+    data0 = {
+      'c': Matrix([[1], [1]]),
+      'A0': Matrix([[1, 1, 0],
+                    [1, 1, 0],
+                    [0, 0, 0]]),
+      'A1': Matrix([[1, 0, 1],
+                    [0, 0, 1],
+                    [1, 1, 1]]),
+      'startPoint': Matrix([[0], [0]])
+    }
+    parameters = [data0]
+
+    # test all cases
+    for i in range(0, len(parameters)):
+      with self.subTest(i = i):
+        problem = SDPSolver(parameters[i]['c'], parameters[i]['A0'], parameters[i]['A1'])
+        with self.assertRaises(ValueError):
+          problem.solve(parameters[i]['startPoint'])
 
 
 if __name__ == '__main__':
