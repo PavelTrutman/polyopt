@@ -155,8 +155,8 @@ class SDPSolver:
 
     # starting point
     y = start
-    self.y0All = [y[0, 0]]
-    self.y1All = [y[1, 0]]
+    y0All = [y[0, 0]]
+    y1All = [y[1, 0]]
 
     FdS0 = self.Fd.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
 
@@ -174,8 +174,8 @@ class SDPSolver:
       #self.logStdout.info('t = ' + str(t))
       self.logStdout.info('y = ' + str(y))
 
-      self.y0All.append(y[0, 0])
-      self.y1All.append(y[1, 0])
+      y0All.append(y[0, 0])
+      y1All.append(y[1, 0])
 
       # substitute to find gradient and hessian
       XS = self.X.subs([(self.x0, y[0, 0]), (self.x1, y[1, 0])])
@@ -198,7 +198,7 @@ class SDPSolver:
 
     # plot auxiliary path
     if self.drawPlot:
-      self.plot.add(self.y1All, xvals = self.y0All, title = 'Auxiliary path', w = 'points', pt = 1)
+      self.plot.add(y1All, xvals = y0All, title = 'Auxiliary path', w = 'points', pt = 1)
       self.gnuplot.show(self.plot)
     return x
 
