@@ -3,18 +3,28 @@
 from sympy import *
 
 class Utils:
+  """
+  Some usefull math utilities.
+
+  by Pavel Trutman, pavel.trutman@fel.cvut.cz
+  """
+
 
   def LocalNorm(u, hessian):
     """
     Nesterov, p.181
     """
+
     return N(sqrt((hessian*u).transpose()*u)[0,0])
+
 
   def LocalNormA(u, hessian):
     """
     Nesterov, p.181
     """
+
     return N(sqrt((hessian.inv()*u).transpose()*u)[0,0])
+
 
   def gradientHessian(AAll, x):
     """
