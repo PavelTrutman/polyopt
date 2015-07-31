@@ -16,24 +16,23 @@ class SDPSolver:
   Class providing SDP Solver.
 
   Solves problem in a form:
-    min c0*x0 + c1*x1
-    s.t. I_3 + A0*x0 + A1*x1 >= 0
-  where A0 and A1 are symetric matrices.
+    min sum_i(c_i*x_i)
+    s.t. A0 + sum_i(A_i*x_i) >= 0
+  where A_i are symetric matrices.
 
   by Pavel Trutman, pavel.tutman@fel.cvut.cz
   """
 
 
-  def __init__(self, c, A0, A1):
+  def __init__(self, c, AAll):
     """
     Initialization of the problem:
-      min c0*x0 + c1*x1
-      s.t. I_3 + A0*x0 + A1*x1 >= 0
+      min sum_i(c_i*x_i)
+      s.t. A0 + sum_i(A_i*x_i) >= 0
 
     Args:
       c (Matrix)
-      A0 (Matrix)
-      A1 (Matrix)
+      AAll (list of Matrix)
 
     Returns:
       None
@@ -43,10 +42,9 @@ class SDPSolver:
 
     # initialization of the problem
     self.c = c
-    self.A0 = A0
-    self.A1 = A1
-    self.nu = 3
-    self.dim = 2
+    self.dim = c.rows
+    self.AAll = AAll
+    self.nu = AAll[0].rows
 
     # disable plotting
     self.drawPlot = False
@@ -65,7 +63,13 @@ class SDPSolver:
     
     Returns:
       None
+
+    Throws:
+      ValueError: the graph con not be plotted if the dimension is not 2
     """
+
+    if drawPlot == True & self.dim != 2:
+      raise ValueError('The graph can not be plotted. Dimension of the problem differ from 2.')
 
     self.drawPlot = drawPlot
 
@@ -75,7 +79,7 @@ class SDPSolver:
       y = Symbol('y')
 
       # self-concordant barrier
-      X = eye(3) + self.A0*x + self.A1*y
+      X = self.AAll[0] + self.AAll[1]*x + self.AAll[2]*y
 
       # plot and save the set into file
       self.gnuplot = gp.gnuplot()
@@ -144,11 +148,12 @@ class SDPSolver:
 
     # starting point
     y = start
-    y0All = [y[0, 0]]
-    y1All = [y[1, 0]]
+    if self.drawPlot:
+      y0All = [y[0, 0]]
+      y1All = [y[1, 0]]
 
     # gradient and hessian
-    Fd, Fdd = Utils.gradientHessian(self.A0, self.A1, y[0, 0], y[1, 0])
+    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y)
     Fd0 = Fd
 
     self.logStdout.info('AUXILIARY PATH-FOLLOWING')
@@ -163,15 +168,15 @@ class SDPSolver:
       #self.logStdout.info('t = ' + str(t))
       self.logStdout.info('y = ' + str(y))
 
-      y0All.append(y[0, 0])
-      y1All.append(y[1, 0])
+      if self.drawPlot:
+        y0All.append(y[0, 0])
+        y1All.append(y[1, 0])
 
       # gradient and hessian
-      Fd, Fdd = Utils.gradientHessian(self.A0, self.A1, y[0, 0], y[1, 0])
+      Fd, Fdd, A = Utils.gradientHessian(self.AAll, y)
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
-        A = eye(3) + self.A0*y[0, 0] + self.A1*y[1, 0]
         eigs = list(A.eigenvals())
         eigs = [ re(N(eig)) for eig in eigs ]
         eigs.sort()
@@ -202,8 +207,9 @@ class SDPSolver:
       Matrix: found optimal solution of the problem
     """
 
-    x0All = [x[0, 0]]
-    x1All = [x[1, 0]]
+    if self.drawPlot:
+      x0All = [x[0, 0]]
+      x1All = [x[1, 0]]
 
     # Main path-following scheme [Nesterov, p. 202]
     self.logStdout.info('\nMAIN PATH-FOLLOWING')
@@ -214,7 +220,7 @@ class SDPSolver:
     k = 0
 
     # print the input condition to verify that is satisfied
-    Fd, Fdd = Utils.gradientHessian(self.A0, self.A1, x[0, 0], x[1, 0])
+    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, x)
     self.logStdout.info('Input condition = ' + str(Utils.LocalNormA(Fd, Fdd)))
 
     while True:
@@ -222,21 +228,21 @@ class SDPSolver:
       self.logStdout.info('\nk = ' + str(k))
 
       # gradient and hessian
-      Fd, Fdd = Utils.gradientHessian(self.A0, self.A1, x[0, 0], x[1, 0])
+      Fd, Fdd, A = Utils.gradientHessian(self.AAll, x)
 
       # iteration step
       t = t + gamma/Utils.LocalNormA(self.c, Fdd)
       x = x - Fdd.inv()*(t*self.c+Fd)
 
-      x0All.append(x[0, 0])
-      x1All.append(x[1, 0])
+      if self.drawPlot:
+        x0All.append(x[0, 0])
+        x1All.append(x[1, 0])
 
       self.logStdout.info('t = ' + str(t))
       self.logStdout.info('x = ' + str(x))
 
       if self.logStdout.isEnabledFor(logging.INFO):
         # print eigenvalues
-        A = eye(3) + self.A0*x[0, 0] + self.A1*x[1, 0]
         eigs = list(A.eigenvals())
         eigs = [ re(N(eig)) for eig in eigs ]
         eigs.sort()
@@ -249,6 +255,7 @@ class SDPSolver:
 
     self.solved = True
     self.result = x
+    self.resultA = A
 
     # plot main path
     if self.drawPlot:
@@ -272,8 +279,7 @@ class SDPSolver:
     """
 
     if self.solved:
-      A = eye(3) + self.A0*self.result[0, 0] + self.A1*self.result[1, 0]
-      eigs = list(A.eigenvals())
+      eigs = list(self.resultA.eigenvals())
       eigs = [ re(N(eig)) for eig in eigs ]
       eigs.sort()
       return eigs

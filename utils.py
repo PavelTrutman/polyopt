@@ -16,15 +16,31 @@ class Utils:
     """
     return N(sqrt((hessian.inv()*u).transpose()*u)[0,0])
 
-  def gradientHessian(A0, A1, x0, x1):
+  def gradientHessian(AAll, x):
     """
-    Compute gradient and hessian analyticly.
+    Compute gradient and hessian analytically.
     """
-
-    A = eye(3) + A0*x0 + A1*x1
+    
+    dim = len(x)
+    A = AAll[0]
+    for i in range(1, len(AAll)):
+      A += AAll[i]*x[i - 1, 0]
     Ainv = A.inv()
-    Ainv0 = Ainv*A0
-    Ainv1 = Ainv*A1
-    Fd = Matrix([[-trace(Ainv0)], [-trace(Ainv1)]])
-    Fdd = Matrix([[trace(Ainv0**2), trace(Ainv0*Ainv1)], [trace(Ainv0*Ainv1), trace(Ainv1**2)]])
-    return Fd, Fdd
+    AAllinv = []
+    for i in range(0, dim):
+      AAllinv.append(Ainv*AAll[i + 1])
+
+    # gradient
+    Fd = zeros(dim, 1)
+    for i in range(0, dim):
+      Fd[i, 0] = -trace(AAllinv[i])
+
+    # hessian
+    Fdd = zeros(dim, dim)
+    for i in range(0, dim):
+      for j in range(i, dim):
+        Aij = trace(AAllinv[i]*AAllinv[j])
+        Fdd[i, j] = Aij
+        Fdd[j, i] = Aij
+
+    return Fd, Fdd, A
