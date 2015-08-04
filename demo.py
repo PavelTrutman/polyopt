@@ -33,6 +33,9 @@ problem.setDrawPlot(True)
 # enable informative output
 problem.setPrintOutput(True)
 
+# enable bounding into ball with radius 1
+#problem.bound(1)
+
 # solve!
 x = problem.solve(startPoint)
 print(x)

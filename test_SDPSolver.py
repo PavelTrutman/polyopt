@@ -4,6 +4,8 @@ import unittest
 from SDPSolver import SDPSolver
 from sympy import *
 from sympy.mpmath import norm
+from utils import Utils
+from time import process_time
 
 class SDPSolverTest(unittest.TestCase):
   """
@@ -123,6 +125,52 @@ class SDPSolverTest(unittest.TestCase):
         problem = SDPSolver(parameters[i]['c'], parameters[i]['A'])
         with self.assertRaises(ValueError):
           problem.solve(parameters[i]['startPoint'])
+
+
+  def testRandomProblemBoundedSet(self):
+    """
+    Test some random generated problems, which should be always bounded.
+
+    Test one problem for dimensions specified below.
+    """
+    
+    
+    # specify dimensions
+    dims = [1, 2, 3, 4, 5, 7, 10, 15, 20, 50, 100, 1000]
+    
+    # test all of them
+    for n in dims:
+      with self.subTest(i = n):
+        # starting point
+        startPoint = zeros(n, 1);
+
+        # objective function
+        c = ones(n, 1)
+
+        # get LMI matrices
+        A = [eye(n)];
+        for i in range(0, n):
+          A.append(Utils.randomSymetric(n))
+
+        # init SDP program
+        problem = SDPSolver(c, A)
+
+        # bound the problem
+        problem.bound(1)
+
+        # solve
+        timeBefore = process_time();
+        problem.solve(startPoint)
+        elapsedTime = process_time() - timeBefore
+        #print(elapsedTime)
+
+        # the matrix have to be semidefinite positive (eigenvalues >= 0)
+        eigs = problem.eigenvalues()
+        for eig in eigs:
+          self.assertGreaterEqual(eig, 0)
+
+        # the smallest eigenvalue has to be near zero
+        self.assertLessEqual(eigs[0], 10**(-3))
 
 
 if __name__ == '__main__':

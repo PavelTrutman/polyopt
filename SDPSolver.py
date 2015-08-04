@@ -5,6 +5,8 @@ from utils import Utils
 import pyGnuplot as gp
 import logging
 import sys
+import numpy as np
+from numpy.linalg import eig
 
 # some constants
 beta = 1/9
@@ -45,6 +47,10 @@ class SDPSolver:
     self.dim = c.rows
     self.AAll = AAll
     self.nu = AAll[0].rows
+    self.dimA = AAll[0].rows
+
+    # disable self-bounding
+    self.boundR = None
 
     # disable plotting
     self.drawPlot = False
@@ -117,6 +123,24 @@ class SDPSolver:
       self.logStdout.setLevel(logging.WARNING)
 
 
+  def bound(self, R):
+    """
+    Bound the problem in a ball. E.g. ||x||^2 <= R^2
+
+    Args:
+      R (int): radius of the bounding ball, pass None to disable bounding
+
+    Returns:
+      None
+    """
+    
+    self.boundR = R
+    if R != None:
+      self.nu = self.dimA + self.dim + 1
+    else:
+      self.nu = self.dimA
+
+
   def solve(self, start):
     """
     Solve the problem from the starting point.
@@ -153,7 +177,7 @@ class SDPSolver:
       y1All = [y[1, 0]]
 
     # gradient and hessian
-    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y)
+    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y, self.boundR)
     Fd0 = Fd
 
     self.logStdout.info('AUXILIARY PATH-FOLLOWING')
@@ -173,12 +197,11 @@ class SDPSolver:
         y1All.append(y[1, 0])
 
       # gradient and hessian
-      Fd, Fdd, A = Utils.gradientHessian(self.AAll, y)
+      Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
-        eigs = list(A.eigenvals())
-        eigs = [ re(N(eig)) for eig in eigs ]
+        eigs, _ = eig(np.array(np.array(A), np.float))
         eigs.sort()
         self.logStdout.info('EIG = ' + str(eigs))
 
@@ -220,7 +243,7 @@ class SDPSolver:
     k = 0
 
     # print the input condition to verify that is satisfied
-    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, x)
+    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, x, self.boundR)
     self.logStdout.info('Input condition = ' + str(Utils.LocalNormA(Fd, Fdd)))
 
     while True:
@@ -228,7 +251,7 @@ class SDPSolver:
       self.logStdout.info('\nk = ' + str(k))
 
       # gradient and hessian
-      Fd, Fdd, A = Utils.gradientHessian(self.AAll, x)
+      Fd, Fdd, A = Utils.gradientHessian(self.AAll, x, self.boundR)
 
       # iteration step
       t = t + gamma/Utils.LocalNormA(self.c, Fdd)
@@ -279,8 +302,9 @@ class SDPSolver:
     """
 
     if self.solved:
-      eigs = list(self.resultA.eigenvals())
-      eigs = [ re(N(eig)) for eig in eigs ]
+      eigs, _ = eig(np.array(np.array(self.resultA), np.float))
+      #eigs = list(self.resultA.eigenvals())
+      #eigs = [ re(N(eig)) for eig in eigs ]
       eigs.sort()
       return eigs
     else:
