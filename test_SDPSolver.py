@@ -7,7 +7,7 @@ from sympy.mpmath import norm
 from utils import Utils
 from time import process_time
 
-class SDPSolverTest(unittest.TestCase):
+class TestSDPSolver(unittest.TestCase):
   """
   Unit test for SDPSolver.py.
 
