@@ -24,33 +24,33 @@ class SDPSolverTest(unittest.TestCase):
     # prepare set of testing cases
     data0 = {
       'c': Matrix([[1], [1]]),
-      'A': [eye(3),
+      'A': [[eye(3),
             Matrix([[1,  0,  0],
                     [0, -1,  0],
                     [0,  0, -1]]),
             Matrix([[0,  1,  0],
                     [1,  0,  1],
-                    [0,  1,  0]])],
+                    [0,  1,  0]])]],
       'startPoint': Matrix([[0], [0]]),
       'result': Matrix([[-0.777673169427983], [-0.592418253409468]])
     }
 
     data1 = {
       'c': Matrix([[1], [1]]),
-      'A': [eye(3),
+      'A': [[eye(3),
             Matrix([[ 1,  0, -1],
                     [ 0, -1,  0],
                     [-1,  0, -1]]),
             Matrix([[ 0,  1,  0],
                     [ 1,  0,  1],
-                    [ 0,  1,  0]])],
+                    [ 0,  1,  0]])]],
       'startPoint': Matrix([[0], [0]]),
       'result': Matrix([[-0.541113957864176], [-0.833869642997048]])
     }
 
     data2 = {
       'c': Matrix([[1], [1], [1]]),
-      'A': [eye(3),
+      'A': [[eye(3),
             Matrix([[1,  0,  0],
                     [0, -1,  0],
                     [0,  0, -1]]),
@@ -59,11 +59,33 @@ class SDPSolverTest(unittest.TestCase):
                     [0,  1,  0]]),
             Matrix([[0,  0,  0],
                     [0,  0, -1],
-                    [0, -1,  0]])],
+                    [0, -1,  0]])]],
       'startPoint': Matrix([[0], [0], [0]]),
       'result': Matrix([[-0.987675582117481], [-0.0243458354034874], [-1.98752220767823]])
     }
-    parameters = [data0, data1, data2]
+
+    # unbounded example manualy bounded
+    data3 = {
+      'c': Matrix([[1], [1]]),
+      'A': [[eye(3),
+            Matrix([[1, 1, 0],
+                    [1, 1, 0],
+                    [0, 0, 0]]),
+            Matrix([[1, 0, 1],
+                    [0, 0, 1],
+                    [1, 1, 1]])],
+            [eye(3),
+            Matrix([[0, 1, 0],
+                    [1, 0, 0],
+                    [0, 0, 0]]),
+            Matrix([[0, 0, 1],
+                    [0, 0, 0],
+                    [1, 0, 0]])],
+           ],
+      'startPoint': Matrix([[0], [0]]),
+      'result': Matrix([[-0.367456763013021], [-0.228720901608749]])
+    }
+    parameters = [data0, data1, data2, data3]
 
     # test all cases
     for i in range(0, len(parameters)):
@@ -122,7 +144,7 @@ class SDPSolverTest(unittest.TestCase):
     # test all cases
     for i in range(0, len(parameters)):
       with self.subTest(i = i):
-        problem = SDPSolver(parameters[i]['c'], parameters[i]['A'])
+        problem = SDPSolver(parameters[i]['c'], [parameters[i]['A']])
         with self.assertRaises(ValueError):
           problem.solve(parameters[i]['startPoint'])
 
@@ -136,7 +158,7 @@ class SDPSolverTest(unittest.TestCase):
     
     
     # specify dimensions
-    dims = [1, 2, 3, 4, 5, 7, 10, 15, 20, 50, 100, 1000]
+    dims = [1, 2, 3, 4, 5, 7]
     
     # test all of them
     for n in dims:
@@ -153,7 +175,7 @@ class SDPSolverTest(unittest.TestCase):
           A.append(Utils.randomSymetric(n))
 
         # init SDP program
-        problem = SDPSolver(c, A)
+        problem = SDPSolver(c, [A])
 
         # bound the problem
         problem.bound(1)

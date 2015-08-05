@@ -20,12 +20,11 @@ A0 = Matrix([[1,  0,  0],
 A1 = Matrix([[0, 1, 0],
              [1, 0, 1],
              [0, 1, 0]])
-
 # starting point 
 startPoint = Matrix([[0], [0]])
 
 # create the solver object
-problem = SDPSolver(c, [eye(3), A0, A1])
+problem = SDPSolver(c, [[eye(3), A0, A1]])
 
 # enable graphs
 problem.setDrawPlot(True)

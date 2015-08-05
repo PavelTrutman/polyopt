@@ -19,8 +19,10 @@ class SDPSolver:
 
   Solves problem in a form:
     min sum_i(c_i*x_i)
-    s.t. A0 + sum_i(A_i*x_i) >= 0
-  where A_i are symetric matrices.
+    s.t. A_10 + sum_i(A_1i*x_i) >= 0
+         A_20 + sum_i(A_2i*x_i) >= 0
+         ...
+  where A_ji are symetric matrices.
 
   by Pavel Trutman, pavel.tutman@fel.cvut.cz
   """
@@ -30,11 +32,13 @@ class SDPSolver:
     """
     Initialization of the problem:
       min sum_i(c_i*x_i)
-      s.t. A0 + sum_i(A_i*x_i) >= 0
+      s.t. A_10 + sum_i(A_1i*x_i) >= 0
+           A_20 + sum_i(A_2i*x_i) >= 0
+           ...
 
     Args:
       c (Matrix)
-      AAll (list of Matrix)
+      AAll (list of list of Matrix)
 
     Returns:
       None
@@ -46,8 +50,7 @@ class SDPSolver:
     self.c = c
     self.dim = c.rows
     self.AAll = AAll
-    self.nu = AAll[0].rows
-    self.dimA = AAll[0].rows
+    self.nu = self.getNu();
 
     # disable self-bounding
     self.boundR = None
@@ -85,7 +88,7 @@ class SDPSolver:
       y = Symbol('y')
 
       # self-concordant barrier
-      X = self.AAll[0] + self.AAll[1]*x + self.AAll[2]*y
+      X = self.AAll[0][0] + self.AAll[0][1]*x + self.AAll[0][2]*y
 
       # plot and save the set into file
       self.gnuplot = gp.gnuplot()
@@ -133,12 +136,24 @@ class SDPSolver:
     Returns:
       None
     """
-    
+
+    if (self.boundR != None) & (R != None):
+      self.AAll[-1][0][0, 0] = R**2
+    elif (self.boundR != None) & (R == None):
+      del self.AAll[-1]
+      self.nu = self.getNu()
+    elif (self.boundR == None) & (R != None):
+      A = [eye(self.dim + 1)]
+      A[0][0, 0] = R**2
+      for i in range(0, self.dim):
+        At = zeros(self.dim + 1, self.dim + 1)
+        At[i + 1, 0] = 1;
+        At[0, i + 1] = 1;
+        A.append(At)
+      self.AAll.append(A)
+      self.nu = self.getNu()
+
     self.boundR = R
-    if R != None:
-      self.nu = self.dimA + self.dim + 1
-    else:
-      self.nu = self.dimA
 
 
   def solve(self, start):
@@ -201,9 +216,10 @@ class SDPSolver:
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
-        eigs, _ = eig(np.array(np.array(A), np.float))
-        eigs.sort()
-        self.logStdout.info('EIG = ' + str(eigs))
+        for i in range(0, len(A)):
+          eigs, _ = eig(np.array(np.array(A[i]), np.float))
+          eigs.sort()
+          self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
       # breaking condition
       if Utils.LocalNormA(Fd, Fdd) <= sqrt(beta)/(1 + sqrt(beta)):
@@ -264,12 +280,12 @@ class SDPSolver:
       self.logStdout.info('t = ' + str(t))
       self.logStdout.info('x = ' + str(x))
 
+      # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
-        # print eigenvalues
-        eigs = list(A.eigenvals())
-        eigs = [ re(N(eig)) for eig in eigs ]
-        eigs.sort()
-        self.logStdout.info('EIG = ' + str(eigs))
+        for i in range(0, len(A)):
+          eigs, _ = eig(np.array(np.array(A[i]), np.float))
+          eigs.sort()
+          self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
       # breaking condition
       self.logStdout.info('Breaking condition = ' + str(eps*t))
@@ -302,13 +318,27 @@ class SDPSolver:
     """
 
     if self.solved:
-      eigs, _ = eig(np.array(np.array(self.resultA), np.float))
-      #eigs = list(self.resultA.eigenvals())
-      #eigs = [ re(N(eig)) for eig in eigs ]
-      eigs.sort()
-      return eigs
+      eigsAll = []
+      for i in range(0, len(self.resultA)):
+        eigs, _ = eig(np.array(np.array(self.resultA[i]), np.float))
+        eigsAll.extend(eigs)
+        #eigs = list(self.resultA.eigenvals())
+        #eigs = [ re(N(eig)) for eig in eigs ]
+      eigsAll.sort()
+      return eigsAll
     else:
       raise ValueError('The problem has not been solved yet so the eignevalues can not be evaluated.')
-    
 
 
+  def getNu(self):
+    """
+    Computes nu from sizes of the matrices.
+
+    Returns:
+      int: nu
+    """
+
+    nu = 0
+    for i in range(0, len(self.AAll)):
+      nu += self.AAll[i][0].rows
+    return nu
