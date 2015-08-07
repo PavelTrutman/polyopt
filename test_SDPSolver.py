@@ -94,7 +94,7 @@ class TestSDPSolver(unittest.TestCase):
         problem = SDPSolver(parameters[i]['c'], parameters[i]['A'])
 
         # solve and compare the results
-        self.assertLessEqual(norm(problem.solve(parameters[i]['startPoint']) - parameters[i]['result']), 10**(-5))
+        self.assertLessEqual(norm(problem.solve(parameters[i]['startPoint'], problem.auxFollow) - parameters[i]['result']), 10**(-5))
 
         # the matrix have to be semidefinite positive (eigenvalues >= 0)
         eigs = problem.eigenvalues()
@@ -146,10 +146,10 @@ class TestSDPSolver(unittest.TestCase):
       with self.subTest(i = i):
         problem = SDPSolver(parameters[i]['c'], [parameters[i]['A']])
         with self.assertRaises(ValueError):
-          problem.solve(parameters[i]['startPoint'])
+          problem.solve(parameters[i]['startPoint'], problem.auxFollow)
 
 
-  def testRandomProblemBoundedSet(self):
+  def testRandomProblemBoundedSetAuxFollow(self):
     """
     Test some random generated problems, which should be always bounded.
 
@@ -158,7 +158,7 @@ class TestSDPSolver(unittest.TestCase):
     
     
     # specify dimensions
-    dims = [1, 2, 3, 4, 5, 7]
+    dims = [1, 2, 3, 4, 5, 6, 7]
     
     # test all of them
     for n in dims:
@@ -182,7 +182,53 @@ class TestSDPSolver(unittest.TestCase):
 
         # solve
         timeBefore = process_time();
-        problem.solve(startPoint)
+        problem.solve(startPoint, problem.auxFollow)
+        elapsedTime = process_time() - timeBefore
+        #print(elapsedTime)
+
+        # the matrix have to be semidefinite positive (eigenvalues >= 0)
+        eigs = problem.eigenvalues()
+        for eig in eigs:
+          self.assertGreaterEqual(eig, 0)
+
+        # the smallest eigenvalue has to be near zero
+        self.assertLessEqual(eigs[0], 10**(-3))
+
+
+  def testRandomProblemBoundedSetDampedNewton(self):
+    """
+    Test some random generated problems, which should be always bounded.
+
+    Test one problem for dimensions specified below.
+    """
+    
+    
+    # specify dimensions
+    dims = [1, 2, 3, 4, 5, 6, 7]
+    
+    # test all of them
+    for n in dims:
+      with self.subTest(i = n):
+        # starting point
+        startPoint = zeros(n, 1);
+
+        # objective function
+        c = ones(n, 1)
+
+        # get LMI matrices
+        A = [eye(n)];
+        for i in range(0, n):
+          A.append(Utils.randomSymetric(n))
+
+        # init SDP program
+        problem = SDPSolver(c, [A])
+
+        # bound the problem
+        problem.bound(1)
+
+        # solve
+        timeBefore = process_time();
+        problem.solve(startPoint, problem.dampedNewton)
         elapsedTime = process_time() - timeBefore
         #print(elapsedTime)
 

@@ -36,7 +36,7 @@ problem.setPrintOutput(True)
 #problem.bound(1)
 
 # solve!
-x = problem.solve(startPoint)
+x = problem.solve(startPoint, problem.dampedNewton)
 print(x)
 
 # print eigenvalues
