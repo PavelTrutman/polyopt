@@ -10,6 +10,7 @@ from numpy.linalg import norm
 from numpy.linalg import eig
 import numpy as np
 import logging
+import sys
 
 class POPSolver:
   """
@@ -34,6 +35,10 @@ class POPSolver:
     self.n = len(key)
     self.d = d
 
+    # disable output
+    logging.basicConfig(stream = sys.stdout, format = '%(message)s')
+    self.logStdout = logging.getLogger()
+
     # generate all variables up to degree 2*d
     allVar = self.generateVariablesUpDegree(2*self.d)
 
@@ -49,15 +54,31 @@ class POPSolver:
     for variable in range(1, len(varUsed)):
       self.c[variable - 1, 0] = f.get(varUsed[variable], 0)
 
+    # initialize SDP Solver
+    self.SDP = SDPSolver(self.c, [self.MM, self.LM])
+
 
   def solve(self, startPoint):
-    print(self.c)
-    print(self.MM)
-    print(self.LM)
-    SDP = SDPSolver(self.c, [self.MM, self.LM])
-    SDP.setDrawPlot(True)
-    SDP.setPrintOutput(True)
-    x = SDP.solve(startPoint)
+    x = self.SDP.solve(startPoint, SDPSolver.dampedNewton)
+    return x
+
+
+  def setPrintOutput(self, printOutput):
+    """
+    Enables or disables printing of the computation state.
+
+    Args:
+      printOuput (bool): True - enables the output, False - disables the output
+
+    Returns:
+      None
+    """
+
+    self.SDP.setPrintOutput(printOutput)
+    if printOutput:
+      self.logStdout.setLevel(logging.INFO)
+    else:
+      self.logStdout.setLevel(logging.WARNING)
 
 
   def momentMatrix(self, d, varUsed):

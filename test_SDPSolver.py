@@ -158,7 +158,8 @@ class TestSDPSolver(unittest.TestCase):
     
     
     # specify dimensions
-    dims = [1, 2, 3, 4, 5, 6, 7]
+    #dims = [1, 2, 3, 4, 5, 6, 7]
+    dims = [4 for i in range(0, 3)]
     
     # test all of them
     for n in dims:
@@ -230,7 +231,7 @@ class TestSDPSolver(unittest.TestCase):
         timeBefore = process_time();
         problem.solve(startPoint, problem.dampedNewton)
         elapsedTime = process_time() - timeBefore
-        #print(elapsedTime)
+        print(elapsedTime)
 
         # the matrix have to be semidefinite positive (eigenvalues >= 0)
         eigs = problem.eigenvalues()

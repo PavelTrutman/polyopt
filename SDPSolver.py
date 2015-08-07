@@ -77,7 +77,7 @@ class SDPSolver:
       ValueError: the graph con not be plotted if the dimension is not 2
     """
 
-    if drawPlot == True & self.dim != 2:
+    if (drawPlot == True) & (self.dim != 2):
       raise ValueError('The graph can not be plotted. Dimension of the problem differ from 2.')
 
     self.drawPlot = drawPlot
@@ -89,6 +89,9 @@ class SDPSolver:
 
       # self-concordant barrier
       X = self.AAll[0][0] + self.AAll[0][1]*x + self.AAll[0][2]*y
+      print(X.det())
+      X = self.AAll[1][0] + self.AAll[1][1]*x + self.AAll[1][2]*y
+      print(X.det())
 
       # plot and save the set into file
       self.gnuplot = gp.gnuplot()
@@ -167,7 +170,7 @@ class SDPSolver:
       Matrix: found optimal solution
     """
 
-    x0 = method(start)
+    x0 = method(self, start)
     return self.mainFollow(x0)
 
 
@@ -192,8 +195,14 @@ class SDPSolver:
       y1All = [y[1, 0]]
 
     # gradient and hessian
-    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y, self.boundR)
+    Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
     Fd0 = Fd
+    # print eigenvalues
+    if self.logStdout.isEnabledFor(logging.INFO):
+      for i in range(0, len(A)):
+        eigs, _ = eig(np.array(np.array(A[i]), np.float))
+        eigs.sort()
+        self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
     self.logStdout.info('AUXILIARY PATH-FOLLOWING')
 

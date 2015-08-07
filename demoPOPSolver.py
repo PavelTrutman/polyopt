@@ -15,14 +15,18 @@ from POPSolver import POPSolver
 # global minima at (1, 2)
 f = {(0, 0): 5, (0, 1): -2, (0, 2): 1, (1, 0): -4, (2, 0): 1}
 
-# g(x, y) = 1 - x^2 - y^2
-g = {(0, 0): 1, (0, 2): -1, (2, 0): -1}
+#f = {(2, ): 1, (1, ): 1, (0, ): -1}
+
+# g(x, y) = 3^3 - x^2 - y^2
+g = {(0, 0): 3**3, (0, 2): -1, (2, 0): -1}
+#g = {(0,): 9, (1,): 0, (2,): -1}
 
 # degree of the relaxation
 d = 2
 
 POP = POPSolver(f, g, d)
-y0 = POP.getFeasiblePoint(1)
-print(y0)
-POP.solve(y0)
+y0 = POP.getFeasiblePoint(3)
+POP.setPrintOutput(True)
+y = POP.solve(y0)
+print(y)
 
