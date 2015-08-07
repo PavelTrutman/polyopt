@@ -160,17 +160,16 @@ class POPSolver:
     usedVars = self.generateVariablesUpDegree(2*self.d)[1:]
 
     y = zeros(len(usedVars), 1)
-    for alpha in range(0, len(usedVars)):
-      i = 0
-      s = 0
-      while i < N:
-        x = uniform(-R, R, (self.n, 1))
-        if norm(np.array(x)) < R**2:
+    i = 0
+    while i < N:
+      x = uniform(-R, R, (self.n, 1))
+      if norm(np.array(x)) < R**2:
+        for alpha in range(0, len(usedVars)):
           yTemp = 1
           for j in range(0, self.n):
             yTemp *= x[j, 0]**usedVars[alpha][j]
-          s += yTemp
-          i += 1
-      y[alpha, 0] = s/N
+          y[alpha, 0] += yTemp
+        i += 1
+    y = y / N
 
     return y
