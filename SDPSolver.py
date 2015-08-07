@@ -156,7 +156,7 @@ class SDPSolver:
     self.boundR = R
 
 
-  def solve(self, start):
+  def solve(self, start, method):
     """
     Solve the problem from the starting point.
 
@@ -167,7 +167,7 @@ class SDPSolver:
       Matrix: found optimal solution
     """
 
-    x0 = self.auxFollow(start)
+    x0 = method(start)
     return self.mainFollow(x0)
 
 
@@ -233,6 +233,63 @@ class SDPSolver:
       self.plot.add(y1All, xvals = y0All, title = 'Auxiliary path', w = 'points', pt = 1)
       self.gnuplot.show(self.plot)
     return x
+
+
+  def dampedNewton(self, start):
+    """
+    Damped Newton method for analytics center [Nesterov, p. 204]
+
+    Args:
+      start (Matrix): the starting point of the algorithm
+
+    Returns:
+      Matrix: approximation of the analytic center
+    """
+
+    k = 0
+
+    # starting point
+    y = start
+    if self.drawPlot:
+      y0All = [y[0, 0]]
+      y1All = [y[1, 0]]
+
+    # gradient and hessian
+    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y, self.boundR)
+
+    self.logStdout.info('AUXILIARY PATH-FOLLOWING')
+
+    while True:
+      k += 1
+      self.logStdout.info('\nk = ' + str(k))
+
+      # iteration step
+      y = y - (Fdd.inv()*Fd)/(1+Utils.LocalNormA(Fd, Fdd))
+      self.logStdout.info('y = ' + str(y))
+
+      if self.drawPlot:
+        y0All.append(y[0, 0])
+        y1All.append(y[1, 0])
+
+      # gradient and hessian
+      Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
+
+      # print eigenvalues
+      if self.logStdout.isEnabledFor(logging.INFO):
+        for i in range(0, len(A)):
+          eigs, _ = eig(np.array(np.array(A[i]), np.float))
+          eigs.sort()
+          self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
+
+      # breaking condition
+      if Utils.LocalNormA(Fd, Fdd) <= beta:
+        break
+
+    # plot auxiliary path
+    if self.drawPlot:
+      self.plot.add(y1All, xvals = y0All, title = 'Damped Newton', w = 'points', pt = 1)
+      self.gnuplot.show(self.plot)
+    return y
 
 
   def mainFollow(self, x):
