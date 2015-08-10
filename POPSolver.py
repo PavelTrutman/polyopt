@@ -59,7 +59,10 @@ class POPSolver:
 
 
   def solve(self, startPoint):
-    x = self.SDP.solve(startPoint, SDPSolver.dampedNewton)
+    y = self.SDP.solve(startPoint, SDPSolver.dampedNewton)
+
+    # extract solutions of the POP problem
+    x = y[0:self.n, 0]
     return x
 
 
