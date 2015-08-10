@@ -16,6 +16,10 @@ class POPSolver:
   """
   Class providing POP (Polynomial Optimization Problem) Solver.
 
+  Solves problem in this form:
+    min f(x)
+    s.t. g(x) >= 0
+
   by Pavel Trutman, pavel.tutman@fel.cvut.cz
   """
 
@@ -59,6 +63,17 @@ class POPSolver:
 
 
   def solve(self, startPoint):
+    """
+    Solves a POP problem.
+
+    Args:
+      startPoint (Matrix): some feasible point of the SDP problem
+
+    Returns:
+      Matrix: solution of the problem
+    """
+
+    # solve the SDP porblem
     y = self.SDP.solve(startPoint, SDPSolver.dampedNewton)
 
     # extract solutions of the POP problem
@@ -149,8 +164,22 @@ class POPSolver:
 
 
   def generateVariablesDegree(self, d, n):
+    """
+    Generates whole set of variables of given degree.
+
+    Args:
+      d (int): degree of the variables
+      n (int): number of unknowns
+
+    Returns:
+      list: list of all variables
+    """
+
+    # generate zero degree variables
     if d == 0:
       return [(0,)*n]
+
+    # generrate one degree variables
     elif d == 1:
       variables = []
       for i in range(0, n):
@@ -158,8 +187,12 @@ class POPSolver:
         t[i] = 1
         variables.append(tuple(t))
       return variables
+
+    # there is only one unkown with the degree d
     elif n == 1:
       return [(d,)]
+
+    # generate variables in general case
     else:
       variables = []
       for i in range(0, d + 1):
@@ -169,6 +202,16 @@ class POPSolver:
   
 
   def generateVariablesUpDegree(self, d):
+    """
+    Generates whole set of variables up to given degree.
+
+    Args:
+      d (int): maximal degree of the variables
+
+    Returns:
+      list: list of variables
+    """
+
     variables = []
     for i in range(0, d + 1):
       variables.extend(self.generateVariablesDegree(i, self.n))
@@ -176,6 +219,14 @@ class POPSolver:
 
 
   def getFeasiblePoint(self, R):
+    """Finds feasible point for SDP problem arisen from the POP problem.
+
+    Args:
+      R (int): a radius of a ball from which x points are choosen
+
+    Returns:
+      Matrix: feasible point for the SDP problem
+    """
 
     N = comb(self.n + self.d, self.n)
     N = ceil(N*1.5 + 1)
@@ -185,9 +236,15 @@ class POPSolver:
 
     y = zeros(len(usedVars), 1)
     i = 0
+
+    # choose many points x to moment matrix have full rank
     while i < N:
+
+      # select x from the ball with given radius
       x = uniform(-R, R, (self.n, 1))
       if norm(np.array(x)) < R**2:
+        
+        # generate points y from it
         for alpha in range(0, len(usedVars)):
           yTemp = 1
           for j in range(0, self.n):
