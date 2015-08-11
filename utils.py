@@ -38,18 +38,18 @@ class Utils:
 
     Fd = zeros(dim, 1)
     Fdd = zeros(dim, dim)
-    A = []
+    A = [None]*len(AAll)
 
     for a in range(0, len(AAll)):
 
-      A.append(AAll[a][0])
+      A[a] = AAll[a][0]
       for i in range(1, len(AAll[a])):
         A[a] += AAll[a][i]*x[i - 1, 0]
 
       Ainv = A[a].inv()
-      AAllinv = []
+      AAllinv = [None]*dim
       for i in range(0, dim):
-        AAllinv.append(Ainv*AAll[a][i + 1])
+        AAllinv[i] = Ainv*AAll[a][i + 1]
 
       # gradient
       for i in range(0, dim):
