@@ -194,6 +194,8 @@ class SDPSolver:
     # gradient and hessian
     Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
     Fd0 = Fd
+    FddInv = Fdd.inv()
+
     # print eigenvalues
     if self.logStdout.isEnabledFor(logging.INFO):
       for i in range(0, len(A)):
@@ -208,8 +210,8 @@ class SDPSolver:
       self.logStdout.info('\nk = ' + str(k))
 
       # iteration step
-      t = t - gamma/Utils.LocalNormA(Fd0, Fdd)
-      y = y - Fdd.inv()*(t*Fd0 + Fd)
+      t = t - gamma/Utils.LocalNorm(Fd0, FddInv)
+      y = y - FddInv*(t*Fd0 + Fd)
       #self.logStdout.info('t = ' + str(t))
       self.logStdout.info('y = ' + str(y))
 
@@ -219,6 +221,7 @@ class SDPSolver:
 
       # gradient and hessian
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
+      FddInv = Fdd.inv()
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
@@ -228,7 +231,7 @@ class SDPSolver:
           self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
       # breaking condition
-      if Utils.LocalNormA(Fd, Fdd) <= sqrt(beta)/(1 + sqrt(beta)):
+      if Utils.LocalNorm(Fd, FddInv) <= sqrt(beta)/(1 + sqrt(beta)):
         break
 
     # prepare x
@@ -262,6 +265,7 @@ class SDPSolver:
 
     # gradient and hessian
     Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y, self.boundR)
+    FddInv = Fdd.inv()
 
     self.logStdout.info('AUXILIARY PATH-FOLLOWING')
 
@@ -270,7 +274,7 @@ class SDPSolver:
       self.logStdout.info('\nk = ' + str(k))
 
       # iteration step
-      y = y - (Fdd.inv()*Fd)/(1+Utils.LocalNormA(Fd, Fdd))
+      y = y - (FddInv*Fd)/(1+Utils.LocalNorm(Fd, FddInv))
       self.logStdout.info('y = ' + str(y))
 
       if self.drawPlot:
@@ -279,6 +283,7 @@ class SDPSolver:
 
       # gradient and hessian
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
+      FddInv = Fdd.inv()
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
@@ -288,7 +293,7 @@ class SDPSolver:
           self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
       # breaking condition
-      if Utils.LocalNormA(Fd, Fdd) <= beta:
+      if Utils.LocalNorm(Fd, FddInv) <= beta:
         break
 
     # plot auxiliary path
@@ -322,8 +327,9 @@ class SDPSolver:
     k = 0
 
     # print the input condition to verify that is satisfied
-    Fd, Fdd, _ = Utils.gradientHessian(self.AAll, x, self.boundR)
-    self.logStdout.info('Input condition = ' + str(Utils.LocalNormA(Fd, Fdd)))
+    if self.logStdout.isEnabledFor(logging.INFO):
+      Fd, Fdd, _ = Utils.gradientHessian(self.AAll, x, self.boundR)
+      self.logStdout.info('Input condition = ' + str(Utils.LocalNormA(Fd, Fdd)))
 
     while True:
       k += 1
@@ -331,10 +337,11 @@ class SDPSolver:
 
       # gradient and hessian
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, x, self.boundR)
+      FddInv = Fdd.inv()
 
       # iteration step
-      t = t + gamma/Utils.LocalNormA(self.c, Fdd)
-      x = x - Fdd.inv()*(t*self.c+Fd)
+      t = t + gamma/Utils.LocalNorm(self.c, FddInv)
+      x = x - FddInv*(t*self.c+Fd)
 
       if self.drawPlot:
         x0All.append(x[0, 0])
