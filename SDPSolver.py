@@ -235,7 +235,7 @@ class SDPSolver:
         break
 
     # prepare x
-    x = y - Fdd.inv()*Fd
+    x = y - FddInv*Fd
 
     # plot auxiliary path
     if self.drawPlot:
