@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
-from sympy import *
+import sympy as sp
 from utils import Utils
 import pyGnuplot as gp
 import logging
 import sys
-import numpy as np
-from numpy.linalg import eig
+from numpy import *
+from numpy.linalg import *
 
 # some constants
 beta = 1/9
@@ -48,7 +48,7 @@ class SDPSolver:
 
     # initialization of the problem
     self.c = c
-    self.dim = c.rows
+    self.dim = c.shape[0]
     self.AAll = AAll
     self.nu = self.getNu();
 
@@ -84,8 +84,8 @@ class SDPSolver:
 
     if self.drawPlot:
       # symbolic variables
-      x = Symbol('x')
-      y = Symbol('y')
+      x = sp.Symbol('x')
+      y = sp.Symbol('y')
 
       # self-concordant barrier
       X = self.AAll[0][0] + self.AAll[0][1]*x + self.AAll[0][2]*y
@@ -98,7 +98,7 @@ class SDPSolver:
       self.gnuplot('unset surface')
       self.gnuplot('set isosamples 2000, 2000')
       self.gnuplot('set table "setPlot.dat"')
-      setPlot = self.gnuplot.splot(str(X.det()))
+      setPlot = self.gnuplot.splot(str(sp.Matrix(X).det()))
       self.gnuplot.newXterm()
       self.gnuplot.show(setPlot)
       self.gnuplot('unset table')
@@ -143,10 +143,10 @@ class SDPSolver:
       del self.AAll[-1]
       self.nu = self.getNu()
     elif (self.boundR == None) & (R != None):
-      A = [eye(self.dim + 1)]
+      A = [identity(self.dim + 1)]
       A[0][0, 0] = R**2
       for i in range(0, self.dim):
-        At = zeros(self.dim + 1, self.dim + 1)
+        At = zeros((self.dim + 1, self.dim + 1))
         At[i + 1, 0] = 1;
         At[0, i + 1] = 1;
         A.append(At)
@@ -194,12 +194,12 @@ class SDPSolver:
     # gradient and hessian
     Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
     Fd0 = Fd
-    FddInv = Fdd.inv()
+    FddInv = inv(Fdd)
 
     # print eigenvalues
     if self.logStdout.isEnabledFor(logging.INFO):
       for i in range(0, len(A)):
-        eigs, _ = eig(np.array(np.array(A[i]), np.float))
+        eigs, _ = eig(A[i])
         eigs.sort()
         self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
@@ -211,7 +211,7 @@ class SDPSolver:
 
       # iteration step
       t = t - gamma/Utils.LocalNorm(Fd0, FddInv)
-      y = y - FddInv*(t*Fd0 + Fd)
+      y = y - dot(FddInv, (t*Fd0 + Fd))
       #self.logStdout.info('t = ' + str(t))
       self.logStdout.info('y = ' + str(y))
 
@@ -221,12 +221,12 @@ class SDPSolver:
 
       # gradient and hessian
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
-      FddInv = Fdd.inv()
+      FddInv = inv(Fdd)
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
         for i in range(0, len(A)):
-          eigs, _ = eig(np.array(np.array(A[i]), np.float))
+          eigs, _ = eig(A[i])
           eigs.sort()
           self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
@@ -235,7 +235,7 @@ class SDPSolver:
         break
 
     # prepare x
-    x = y - FddInv*Fd
+    x = y - dot(FddInv, Fd)
 
     # plot auxiliary path
     if self.drawPlot:
@@ -265,7 +265,7 @@ class SDPSolver:
 
     # gradient and hessian
     Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y, self.boundR)
-    FddInv = Fdd.inv()
+    FddInv = inv(Fdd)
 
     self.logStdout.info('AUXILIARY PATH-FOLLOWING')
 
@@ -274,7 +274,7 @@ class SDPSolver:
       self.logStdout.info('\nk = ' + str(k))
 
       # iteration step
-      y = y - (FddInv*Fd)/(1+Utils.LocalNorm(Fd, FddInv))
+      y = y - dot(FddInv, Fd)/(1+Utils.LocalNorm(Fd, FddInv))
       self.logStdout.info('y = ' + str(y))
 
       if self.drawPlot:
@@ -283,12 +283,12 @@ class SDPSolver:
 
       # gradient and hessian
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
-      FddInv = Fdd.inv()
+      FddInv = inv(Fdd)
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
         for i in range(0, len(A)):
-          eigs, _ = eig(np.array(np.array(A[i]), np.float))
+          eigs, _ = eig(A[i])
           eigs.sort()
           self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
@@ -300,6 +300,7 @@ class SDPSolver:
     if self.drawPlot:
       self.plot.add(y1All, xvals = y0All, title = 'Damped Newton', w = 'points', pt = 1)
       self.gnuplot.show(self.plot)
+
     return y
 
 
@@ -337,11 +338,11 @@ class SDPSolver:
 
       # gradient and hessian
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, x, self.boundR)
-      FddInv = Fdd.inv()
+      FddInv = inv(Fdd)
 
       # iteration step
       t = t + gamma/Utils.LocalNorm(self.c, FddInv)
-      x = x - FddInv*(t*self.c+Fd)
+      x = x - dot(FddInv, (t*self.c + Fd))
 
       if self.drawPlot:
         x0All.append(x[0, 0])
@@ -353,7 +354,7 @@ class SDPSolver:
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
         for i in range(0, len(A)):
-          eigs, _ = eig(np.array(np.array(A[i]), np.float))
+          eigs, _ = eig(A[i])
           eigs.sort()
           self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
@@ -390,10 +391,8 @@ class SDPSolver:
     if self.solved:
       eigsAll = []
       for i in range(0, len(self.resultA)):
-        eigs, _ = eig(np.array(np.array(self.resultA[i]), np.float))
+        eigs, _ = eig(self.resultA[i])
         eigsAll.extend(eigs)
-        #eigs = list(self.resultA.eigenvals())
-        #eigs = [ re(N(eig)) for eig in eigs ]
       eigsAll.sort()
       return eigsAll
     else:
@@ -410,5 +409,5 @@ class SDPSolver:
 
     nu = 0
     for i in range(0, len(self.AAll)):
-      nu += self.AAll[i][0].rows
+      nu += self.AAll[i][0].shape[0]
     return nu

@@ -6,22 +6,22 @@ Demo, how to use the SDP Solver.
 by Pavel Trutman, pavel.trutman@fel.cvut.cz
 """
 
-from sympy import *
+from numpy import *
 from SDPSolver import SDPSolver
 
 # Problem statement
 # min c0*x0 + c1*x1
 # s. t. I_3 + A0*x0 + A1*x1 >= 0
 
-c = Matrix([[1], [1]])
-A0 = Matrix([[1,  0,  0],
+c = array([[1], [1]])
+A0 = array([[1,  0,  0],
              [0, -1,  0],
              [0,  0, -1]])
-A1 = Matrix([[0, 1, 0],
+A1 = array([[0, 1, 0],
              [1, 0, 1],
              [0, 1, 0]])
 # starting point 
-startPoint = Matrix([[0], [0]])
+startPoint = array([[0], [0]])
 
 # create the solver object
 problem = SDPSolver(c, [[eye(3), A0, A1]])

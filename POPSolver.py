@@ -1,14 +1,12 @@
 #!/usr/bin/python3
 
-from sympy import *
 from utils import Utils
 from SDPSolver import SDPSolver
 from math import ceil
 from scipy.misc import comb
 from numpy.random import uniform
-from numpy.linalg import norm
-from numpy.linalg import eig
-import numpy as np
+from numpy.linalg import *
+from numpy import *
 import logging
 import sys
 
@@ -54,7 +52,7 @@ class POPSolver:
     self.LM = self.localizingMatrix(self.d - 1, varUsed, g)
 
     # generate objective function for SDP
-    self.c = zeros(len(varUsed) - 1, 1)
+    self.c = zeros((len(varUsed) - 1, 1))
     for variable in range(1, len(varUsed)):
       self.c[variable - 1, 0] = f.get(varUsed[variable], 0)
 
@@ -77,7 +75,7 @@ class POPSolver:
     y = self.SDP.solve(startPoint, self.SDP.dampedNewton)
 
     # extract solutions of the POP problem
-    x = y[0:self.n, 0]
+    x = y[0:self.n, :]
     return x
 
 
@@ -115,7 +113,7 @@ class POPSolver:
     varUsedNum = len(varUsed)
     dimM = len(varUpD)
 
-    MM = [zeros(dimM) for i in range(0, varUsedNum)]
+    MM = [zeros((dimM, dimM)) for i in range(0, varUsedNum)]
 
     for i in range(0, dimM):
       for j in range(i, dimM):
@@ -146,7 +144,7 @@ class POPSolver:
     varUpD = self.generateVariablesUpDegree(d)
     varUsedNum = len(varUsed)
     dimM = len(varUpD)
-    LM = [zeros(dimM) for i in range(0, varUsedNum)]
+    LM = [zeros((dimM, dimM)) for i in range(0, varUsedNum)]
 
     for mon, coef in g.items():
       for i in range(0, dimM):
@@ -234,7 +232,7 @@ class POPSolver:
     # generate all variable
     usedVars = self.generateVariablesUpDegree(2*self.d)[1:]
 
-    y = zeros(len(usedVars), 1)
+    y = zeros((len(usedVars), 1))
     i = 0
 
     # choose many points x to moment matrix have full rank
@@ -242,7 +240,7 @@ class POPSolver:
 
       # select x from the ball with given radius
       x = uniform(-R, R, (self.n, 1))
-      if norm(np.array(x)) < R**2:
+      if norm(x) < R**2:
         
         # generate points y from it
         for alpha in range(0, len(usedVars)):

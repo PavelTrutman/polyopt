@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
 import unittest
+from numpy import *
+from numpy.linalg import *
 from POPSolver import POPSolver
-from sympy import *
-from sympy.mpmath import norm
 from utils import Utils
 from time import process_time
 
@@ -23,7 +23,7 @@ class TestPOPSolver(unittest.TestCase):
     # prepare set of testing cases
     f = {(2, ): 1, (1, ): 1, (0, ): -1}
     g = {(0,): 3**3, (1,): 0, (2,): -1}
-    solution = Matrix([[-0.5]])
+    solution = matrix([[-0.5]])
 
     # test all cases
     for degree in range(1, 4):
@@ -44,7 +44,7 @@ class TestPOPSolver(unittest.TestCase):
     # prepare set of testing cases
     f = {(0, 0): 5, (1, 0): -2, (2, 0): 1, (0, 1): -4, (0, 2): 1}
     g = {(0, 0): 3**3, (0, 2): -1, (2, 0): -1}
-    solution = Matrix([[1], [2]])
+    solution = matrix([[1], [2]])
 
     # test all cases
     for degree in range(1, 3):
