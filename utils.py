@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-from sympy import *
+from numpy import *
+from numpy.linalg import *
 from numpy.random import uniform
 from sympy.mpmath import norm
 
@@ -17,7 +18,7 @@ class Utils:
     Nesterov, p.181
     """
 
-    return N(sqrt((hessian*u).transpose()*u)[0,0])
+    return sqrt(dot((dot(hessian, u)).T, u))[0,0]
 
 
   def LocalNormA(u, hessian):
@@ -25,7 +26,7 @@ class Utils:
     Nesterov, p.181
     """
 
-    return N(sqrt((hessian.inv()*u).transpose()*u)[0,0])
+    return sqrt(dot((dot(inv(hessian), u)).T, u))[0,0]
 
 
   def gradientHessian(AAll, x, R = None):
@@ -36,20 +37,20 @@ class Utils:
     # get the dimension of the problem
     dim = len(x)
 
-    Fd = zeros(dim, 1)
-    Fdd = zeros(dim, dim)
+    Fd = zeros((dim, 1))
+    Fdd = zeros((dim, dim))
     A = [None]*len(AAll)
 
     for a in range(0, len(AAll)):
 
-      A[a] = AAll[a][0]
+      A[a] = copy(AAll[a][0])
       for i in range(1, len(AAll[a])):
         A[a] += AAll[a][i]*x[i - 1, 0]
 
-      Ainv = A[a].inv()
+      Ainv = inv(A[a])
       AAllinv = [None]*dim
       for i in range(0, dim):
-        AAllinv[i] = Ainv*AAll[a][i + 1]
+        AAllinv[i] = dot(Ainv, AAll[a][i + 1])
 
       # gradient
       for i in range(0, dim):
@@ -58,7 +59,7 @@ class Utils:
       # hessian
       for i in range(0, dim):
         for j in range(i, dim):
-          Aij = trace(AAllinv[i]*AAllinv[j])
+          Aij = trace(dot(AAllinv[i], AAllinv[j]))
           Fdd[i, j] += Aij
           if i != j:
             Fdd[j, i] += Aij
@@ -97,7 +98,7 @@ class Utils:
     """
 
 
-    M = zeros(dim)
+    M = zeros((dim, dim))
     for i in range(0, dim):
       for j in range(i, dim):
         r = uniform(-1, 1)

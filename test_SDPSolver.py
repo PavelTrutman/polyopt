@@ -2,8 +2,8 @@
 
 import unittest
 from SDPSolver import SDPSolver
-from sympy import *
-from sympy.mpmath import norm
+from numpy import *
+from numpy.linalg import *
 from utils import Utils
 from time import process_time
 
@@ -23,67 +23,67 @@ class TestSDPSolver(unittest.TestCase):
 
     # prepare set of testing cases
     data0 = {
-      'c': Matrix([[1], [1]]),
-      'A': [[eye(3),
-            Matrix([[1,  0,  0],
+      'c': matrix([[1], [1]]),
+      'A': [[identity(3),
+            matrix([[1,  0,  0],
                     [0, -1,  0],
                     [0,  0, -1]]),
-            Matrix([[0,  1,  0],
+            matrix([[0,  1,  0],
                     [1,  0,  1],
                     [0,  1,  0]])]],
-      'startPoint': Matrix([[0], [0]]),
-      'result': Matrix([[-0.777673169427983], [-0.592418253409468]])
+      'startPoint': matrix([[0], [0]]),
+      'result': matrix([[-0.777673169427983], [-0.592418253409468]])
     }
 
     data1 = {
-      'c': Matrix([[1], [1]]),
-      'A': [[eye(3),
-            Matrix([[ 1,  0, -1],
+      'c': matrix([[1], [1]]),
+      'A': [[identity(3),
+            matrix([[ 1,  0, -1],
                     [ 0, -1,  0],
                     [-1,  0, -1]]),
-            Matrix([[ 0,  1,  0],
+            matrix([[ 0,  1,  0],
                     [ 1,  0,  1],
                     [ 0,  1,  0]])]],
-      'startPoint': Matrix([[0], [0]]),
-      'result': Matrix([[-0.541113957864176], [-0.833869642997048]])
+      'startPoint': matrix([[0], [0]]),
+      'result': matrix([[-0.541113957864176], [-0.833869642997048]])
     }
 
     data2 = {
-      'c': Matrix([[1], [1], [1]]),
-      'A': [[eye(3),
-            Matrix([[1,  0,  0],
+      'c': matrix([[1], [1], [1]]),
+      'A': [[identity(3),
+            matrix([[1,  0,  0],
                     [0, -1,  0],
                     [0,  0, -1]]),
-            Matrix([[0,  1,  0],
+            matrix([[0,  1,  0],
                     [1,  0,  1],
                     [0,  1,  0]]),
-            Matrix([[0,  0,  0],
+            matrix([[0,  0,  0],
                     [0,  0, -1],
                     [0, -1,  0]])]],
-      'startPoint': Matrix([[0], [0], [0]]),
-      'result': Matrix([[-0.987675582117481], [-0.0243458354034874], [-1.98752220767823]])
+      'startPoint': matrix([[0], [0], [0]]),
+      'result': matrix([[-0.987675582117481], [-0.0243458354034874], [-1.98752220767823]])
     }
 
     # unbounded example manualy bounded
     data3 = {
-      'c': Matrix([[1], [1]]),
-      'A': [[eye(3),
-            Matrix([[1, 1, 0],
+      'c': matrix([[1], [1]]),
+      'A': [[identity(3),
+            matrix([[1, 1, 0],
                     [1, 1, 0],
                     [0, 0, 0]]),
-            Matrix([[1, 0, 1],
+            matrix([[1, 0, 1],
                     [0, 0, 1],
                     [1, 1, 1]])],
-            [eye(3),
-            Matrix([[0, 1, 0],
+            [identity(3),
+            matrix([[0, 1, 0],
                     [1, 0, 0],
                     [0, 0, 0]]),
-            Matrix([[0, 0, 1],
+            matrix([[0, 0, 1],
                     [0, 0, 0],
                     [1, 0, 0]])],
            ],
-      'startPoint': Matrix([[0], [0]]),
-      'result': Matrix([[-0.367456763013021], [-0.228720901608749]])
+      'startPoint': matrix([[0], [0]]),
+      'result': matrix([[-0.367456763013021], [-0.228720901608749]])
     }
     parameters = [data0, data1, data2, data3]
 
@@ -114,30 +114,30 @@ class TestSDPSolver(unittest.TestCase):
 
     # prepare set of testing cases
     data0 = {
-      'c': Matrix([[1], [1]]),
-      'A': [eye(3), 
-            Matrix([[1, 1, 0],
+      'c': matrix([[1], [1]]),
+      'A': [identity(3), 
+            matrix([[1, 1, 0],
                     [1, 1, 0],
                     [0, 0, 0]]),
-            Matrix([[1, 0, 1],
+            matrix([[1, 0, 1],
                     [0, 0, 1],
                     [1, 1, 1]])],
-      'startPoint': Matrix([[0], [0]])
+      'startPoint': matrix([[0], [0]])
     }
 
     data1 = {
-      'c': Matrix([[1], [1], [1]]),
-      'A': [eye(3), 
-            Matrix([[1,  0,  0],
+      'c': matrix([[1], [1], [1]]),
+      'A': [identity(3), 
+            matrix([[1,  0,  0],
                     [0, -1,  0],
                     [0,  0, -1]]),
-            Matrix([[0,  1,  0],
+            matrix([[0,  1,  0],
                     [1,  0,  1],
                     [0,  1,  0]]),
-            Matrix([[1,  1,  0],
+            matrix([[1,  1,  0],
                     [1,  0,  1],
                     [0,  1,  1]])],
-      'startPoint': Matrix([[0], [0], [0]])
+      'startPoint': matrix([[0], [0], [0]])
     }
     parameters = [data0, data1]
 
@@ -145,11 +145,11 @@ class TestSDPSolver(unittest.TestCase):
     for i in range(0, len(parameters)):
       with self.subTest(i = i):
         problem = SDPSolver(parameters[i]['c'], [parameters[i]['A']])
-        with self.assertRaises(ValueError):
+        with self.assertRaises(LinAlgError):
           problem.solve(parameters[i]['startPoint'], problem.auxFollow)
 
 
-  def testRandomProblemBoundedSetAuxFollow(self):
+  def _testRandomProblemBoundedSetAuxFollow(self):
     """
     Test some random generated problems, which should be always bounded.
 
@@ -158,16 +158,16 @@ class TestSDPSolver(unittest.TestCase):
     
     
     # specify dimensions
-    dims = [1, 2, 3, 4, 5, 6, 7]
+    dims = [1, 2, 3, 4, 5, 6, 7, 10, 25]
     
     # test all of them
     for n in dims:
       with self.subTest(i = n):
         # starting point
-        startPoint = zeros(n, 1);
+        startPoint = zeros((n, 1));
 
         # objective function
-        c = ones(n, 1)
+        c = ones((n, 1))
 
         # get LMI matrices
         A = [eye(n)];
@@ -204,19 +204,19 @@ class TestSDPSolver(unittest.TestCase):
     
     
     # specify dimensions
-    dims = [1, 2, 3, 4, 5, 6, 7]
+    dims = [1, 2, 3, 4, 5, 6, 7, 10, 25]
     
     # test all of them
     for n in dims:
       with self.subTest(i = n):
         # starting point
-        startPoint = zeros(n, 1);
+        startPoint = zeros((n, 1));
 
         # objective function
-        c = ones(n, 1)
+        c = ones((n, 1))
 
         # get LMI matrices
-        A = [eye(n)];
+        A = [identity(n)];
         for i in range(0, n):
           A.append(Utils.randomSymetric(n))
 
