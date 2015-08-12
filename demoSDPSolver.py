@@ -27,10 +27,13 @@ startPoint = Matrix([[0], [0]])
 problem = SDPSolver(c, [[eye(3), A0, A1]])
 
 # enable graphs
-problem.setDrawPlot(True)
+#problem.setDrawPlot(True)
 
 # enable informative output
-problem.setPrintOutput(True)
+#problem.setPrintOutput(True)
+
+# enable informative output
+problem.setTiming(True)
 
 # enable bounding into ball with radius 1
 #problem.bound(1)
@@ -38,6 +41,8 @@ problem.setPrintOutput(True)
 # solve!
 x = problem.solve(startPoint, problem.dampedNewton)
 print(x)
+
+print(problem.getTimes())
 
 # print eigenvalues
 #print(problem.eigenvalues())

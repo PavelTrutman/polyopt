@@ -204,7 +204,7 @@ class TestSDPSolver(unittest.TestCase):
     
     
     # specify dimensions
-    dims = [1, 2, 3, 4, 5, 6, 7]
+    dims = [7, 7, 7]
     
     # test all of them
     for n in dims:
@@ -226,6 +226,9 @@ class TestSDPSolver(unittest.TestCase):
         # bound the problem
         problem.bound(1)
 
+        # enable timing
+        problem.setTiming(True)
+
         # solve
         timeBefore = process_time();
         problem.solve(startPoint, problem.dampedNewton)
@@ -239,6 +242,8 @@ class TestSDPSolver(unittest.TestCase):
 
         # the smallest eigenvalue has to be near zero
         self.assertLessEqual(eigs[0], 10**(-3))
+
+        print(problem.getTimes())
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ by Pavel Trutman, pavel.trutman@fel.cvut.cz
 
 from sympy import *
 from POPSolver import POPSolver
+from time import process_time
 
 # objective function
 # f(x, y) = (x - 1)^2 + (y - 2)^2
@@ -29,9 +30,18 @@ POP = POPSolver(f, g, d)
 y0 = POP.getFeasiblePoint(3)
 
 # enable outputs
-POP.setPrintOutput(True)
+#POP.setPrintOutput(True)
+
+# enable timing
+POP.SDP.setTiming(True)
 
 #solve the problem
+timeBefore = process_time();
 x = POP.solve(y0)
+elapsedTime = process_time() - timeBefore
+
+print(POP.SDP.getTimes())
+
+print(elapsedTime)
 print(x)
 

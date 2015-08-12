@@ -7,6 +7,7 @@ import logging
 import sys
 import numpy as np
 from numpy.linalg import eig
+from time import process_time
 
 # some constants
 beta = 1/9
@@ -61,6 +62,9 @@ class SDPSolver:
     # disable output
     logging.basicConfig(stream = sys.stdout, format = '%(message)s')
     self.logStdout = logging.getLogger()
+
+    # disable timing
+    self.timing = False
 
 
   def setDrawPlot(self, drawPlot):
@@ -156,6 +160,13 @@ class SDPSolver:
     self.boundR = R
 
 
+  def setTiming(self, timing):
+    """
+    """
+
+    self.timing = timing
+
+
   def solve(self, start, method):
     """
     Solve the problem from the starting point.
@@ -167,8 +178,30 @@ class SDPSolver:
       Matrix: found optimal solution
     """
 
+    # intialize timing
+    if self.timing:
+      self.timeBegin = process_time()
+      self.timeDerive = 0
+
+    # find analytics center
     x0 = method(start)
-    return self.mainFollow(x0)
+
+    # timing
+    if self.timing:
+      self.timeMiddle = process_time()
+      self.timeAnCntr = self.timeMiddle - self.timeBegin
+      self.timeMiddle = process_time()
+
+    # find the optimum
+    x = self.mainFollow(x0)
+
+    # timing at the end
+    if self.timing:
+      self.timeEnd = process_time()
+      self.timeMain = self.timeEnd - self.timeMiddle
+      self.timeAll = self.timeEnd - self.timeBegin
+
+    return x
 
 
   def auxFollow(self, start):
@@ -192,9 +225,13 @@ class SDPSolver:
       y1All = [y[1, 0]]
 
     # gradient and hessian
+    if self.timing:
+      time = process_time()
     Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
-    Fd0 = Fd
     FddInv = Fdd.inv()
+    if self.timing:
+      self.timeDerive += process_time() - time
+    Fd0 = Fd
 
     # print eigenvalues
     if self.logStdout.isEnabledFor(logging.INFO):
@@ -220,8 +257,12 @@ class SDPSolver:
         y1All.append(y[1, 0])
 
       # gradient and hessian
+      if self.timing:
+        time = process_time()
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
       FddInv = Fdd.inv()
+      if self.timing:
+        self.timeDerive += process_time() - time
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
@@ -235,7 +276,7 @@ class SDPSolver:
         break
 
     # prepare x
-    x = y - Fdd.inv()*Fd
+    x = y - FddInv*Fd
 
     # plot auxiliary path
     if self.drawPlot:
@@ -264,8 +305,12 @@ class SDPSolver:
       y1All = [y[1, 0]]
 
     # gradient and hessian
+    if self.timing:
+      time = process_time()
     Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y, self.boundR)
     FddInv = Fdd.inv()
+    if self.timing:
+      self.timeDerive += process_time() - time
 
     self.logStdout.info('AUXILIARY PATH-FOLLOWING')
 
@@ -282,8 +327,12 @@ class SDPSolver:
         y1All.append(y[1, 0])
 
       # gradient and hessian
+      if self.timing:
+        time = process_time()
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, y, self.boundR)
       FddInv = Fdd.inv()
+      if self.timing:
+        self.timeDerive += process_time() - time
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
@@ -336,8 +385,12 @@ class SDPSolver:
       self.logStdout.info('\nk = ' + str(k))
 
       # gradient and hessian
+      if self.timing:
+        time = process_time()
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, x, self.boundR)
       FddInv = Fdd.inv()
+      if self.timing:
+        self.timeDerive += (process_time() - time)
 
       # iteration step
       t = t + gamma/Utils.LocalNorm(self.c, FddInv)
@@ -412,3 +465,13 @@ class SDPSolver:
     for i in range(0, len(self.AAll)):
       nu += self.AAll[i][0].rows
     return nu
+
+
+  def getTimes(self):
+    """
+    """
+
+    if self.solved:
+      return {'anCntr': self.timeAnCntr, 'main': self.timeMain, 'derive': self.timeDerive, 'all': self.timeAll, 'derivePC': self.timeDerive/self.timeAll} 
+    else:
+      raise ValueError('The problem has not been solved yet so the eignevalues can not be evaluated.')
