@@ -240,7 +240,7 @@ class POPSolver:
 
       # select x from the ball with given radius
       x = uniform(-R, R, (self.n, 1))
-      if norm(x) < R**2:
+      if norm(x) < R:
         
         # generate points y from it
         for alpha in range(0, len(usedVars)):
