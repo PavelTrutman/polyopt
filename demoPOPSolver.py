@@ -6,7 +6,7 @@ Demo, how to use the POP Solver.
 by Pavel Trutman, pavel.trutman@fel.cvut.cz
 """
 
-from sympy import *
+from numpy import *
 from POPSolver import POPSolver
 
 # objective function
