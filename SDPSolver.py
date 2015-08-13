@@ -175,6 +175,8 @@ class SDPSolver:
     """
     Auxiliary path-following algorithm [Nesterov, p. 205]
 
+    Warning: This function appears to be unstable. Please use dampedNewton instead.
+
     Args:
       start (Matrix): the starting point of the algorithm
 
