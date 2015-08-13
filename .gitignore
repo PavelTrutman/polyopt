@@ -4,3 +4,4 @@ __pycache__/
 *.swp
 
 setPlot.dat
+performanceResults.npy
