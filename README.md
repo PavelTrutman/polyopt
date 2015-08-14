@@ -1,7 +1,7 @@
 Polynomial optimization problem solver and Semidefinite programming solver
 =====
 
-This Python package enables you to solve problem of semidefinite programming. Also provides a tool to convert a polynomial optimization problem into semidefinite programming.
+This Python package enables you to solve semidefinite programming problems. Also provides a tool to convert a polynomial optimization problem into semidefinite programme.
 
 Usage
 -----
