@@ -11,11 +11,12 @@ import pyGnuplot as gp
 from time import sleep
 
 # what do you want to view?
-relaxOrder = True
+relaxOrder = False
 polynomialDegree = True
 
 # load data form file
-data = load('performanceResults.npy')
+data = load('performanceResults/performanceResults.npy')
+print(data)
 shape = data.shape
 
 if relaxOrder:
@@ -53,10 +54,10 @@ if polynomialDegree:
     if a.shape[0] != 0:
       for relaxOrder in range(0, shape[2]):
         if first:
-          plot = gnuplot.plot(a[:, relaxOrder], xvals = range(shape[2] - a.shape[0] + 1, shape[2] + 1), title = 'dim = ' + str(n) + ', relaxOrder = ' + str(relaxOrder), w = 'lines')
+          plot = gnuplot.plot(a[:, relaxOrder], xvals = range(shape[1] - a.shape[0], shape[1]), title = 'dim = ' + str(n) + ', relaxOrder = ' + str(relaxOrder), w = 'lines')
           first = False
         else:
-          plot.add(a[:, relaxOrder], xvals = range(shape[2] - a.shape[0] + 1, shape[2] + 1), title = 'dim = ' + str(n) + ', relaxOrder = ' + str(relaxOrder), w = 'lines')
+          plot.add(a[:, relaxOrder], xvals = range(shape[1] - a.shape[0], shape[1]), title = 'dim = ' + str(n) + ', relaxOrder = ' + str(relaxOrder), w = 'lines')
       if plot != None:
         gnuplot.newXterm()
         gnuplot.show(plot)

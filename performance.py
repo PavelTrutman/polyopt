@@ -133,5 +133,5 @@ for n in dim:
       print((n, dF, dR))
       results[n, dF, dR] = t/len(N)
 
-save('performanceResults', results)
+save('performanceResults/performanceResults.npy', results)
 print(results)
