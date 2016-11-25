@@ -3,7 +3,7 @@
 from numpy import *
 from numpy.linalg import *
 from numpy.random import uniform
-from sympy.mpmath import norm
+from mpmath import norm
 
 class Utils:
   """

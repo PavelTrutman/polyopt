@@ -2,7 +2,7 @@
 
 import sympy as sp
 from utils import Utils
-import pyGnuplot as gp
+import gnuplot as gp
 import logging
 import sys
 from numpy import *
@@ -91,22 +91,19 @@ class SDPSolver:
       X = self.AAll[0][0] + self.AAll[0][1]*x + self.AAll[0][2]*y
 
       # plot and save the set into file
-      self.gnuplot = gp.gnuplot()
-      self.gnuplot.set('view map')
+      self.gnuplot = gp.Gnuplot()
+      self.gnuplot('set view map')
       self.gnuplot('set contour')
       self.gnuplot('set cntrparam levels discrete 0')
       self.gnuplot('unset surface')
       self.gnuplot('set isosamples 2000, 2000')
-      self.gnuplot('set table "setPlot.dat"')
+      self.gnuplot('set table "tmp/setPlot.dat"')
       setPlot = self.gnuplot.splot(str(sp.Matrix(X).det()))
-      self.gnuplot.newXterm()
-      self.gnuplot.show(setPlot)
       self.gnuplot('unset table')
-      self.gnuplot('reset')
+      self.gnuplot.reset()
 
       # plot the set
-      self.plot = self.gnuplot.plot('"setPlot.dat" using 1:2', w = 'lines', title = 'Set boundary')
-      self.gnuplot.show(self.plot)
+      self.plot = self.gnuplot.plot('"tmp/setPlot.dat" using 1:2 with lines title "Set boundary"')
 
 
   def setPrintOutput(self, printOutput):
@@ -241,8 +238,7 @@ class SDPSolver:
 
     # plot auxiliary path
     if self.drawPlot:
-      self.plot.add(y1All, xvals = y0All, title = 'Auxiliary path', w = 'points', pt = 1)
-      self.gnuplot.show(self.plot)
+      self.gnuplot.replot(gp.Data(y0All, y1All, title = 'Auxiliary path', with_ = 'points pt 1', filename = 'tmp/auxiliaryPath.dat'))
     return x
 
 
@@ -300,8 +296,7 @@ class SDPSolver:
 
     # plot auxiliary path
     if self.drawPlot:
-      self.plot.add(y1All, xvals = y0All, title = 'Damped Newton', w = 'points', pt = 1)
-      self.gnuplot.show(self.plot)
+      self.gnuplot.replot(gp.Data(y0All, y1All, title = 'Damped Newton', with_ = 'points pt 1', filename = 'tmp/dampedNewton.dat'))
 
     return y
 
@@ -371,8 +366,7 @@ class SDPSolver:
 
     # plot main path
     if self.drawPlot:
-      self.plot.add(x1All, xvals = x0All, title = 'Main path', w = 'points', pt = 1)
-      self.gnuplot.show(self.plot)
+      self.gnuplot.replot(gp.Data(x0All, x1All, title = 'Main path', with_ = 'points pt 1', filename = 'tmp/mainPath.dat'))
       print('\nPress enter to continue')
       input()
 
