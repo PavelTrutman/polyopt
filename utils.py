@@ -26,7 +26,7 @@ class Utils:
     Nesterov, p.181
     """
 
-    return sqrt(dot((dot(inv(hessian), u)).T, u))[0,0]
+    return sqrt(dot((solve(hessian, u)).T, u))[0,0]
 
 
   def gradientHessian(AAll, x, R = None):
