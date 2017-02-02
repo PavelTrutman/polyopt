@@ -59,7 +59,7 @@ class Utils:
       # hessian
       for i in range(0, dim):
         for j in range(i, dim):
-          Aij = trace(dot(AAllinv[i], AAllinv[j]))
+          Aij = einsum('ij,ji->', AAllinv[i], AAllinv[j])
           Fdd[i, j] += Aij
           if i != j:
             Fdd[j, i] += Aij
