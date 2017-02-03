@@ -19,4 +19,5 @@ setup (
   url='https://github.com/PavelTrutman/POP-SDP',
   package_dir={'PolyOpt' : '.'},
   packages = ['polyopt'],
+  test_suite='tests',
 )
