@@ -46,7 +46,7 @@ if args.bench:
   # for dimension
   for n in dim:
   
-    print('dimension:', '{:<3d} '.format(n), end='', flush=True)
+    print('dimension:', '{:>3d} '.format(n), end='', flush=True)
   
     # for different feasible points
     for i in range(0, N):
@@ -79,9 +79,9 @@ if args.bench:
 
       print('.', end='', flush=True)
 
-    print()
+    print(' {:3.2f} s'.format(sum(results[n, :])/N))
 
-    if sum(results[n, :]) > 20*threshold:
+    if sum(results[n, :]) > N*threshold:
       break
   
     #results[n] = t/len(N)
@@ -110,7 +110,7 @@ if args.plot:
   gnuplot = gp.Gnuplot()
   gnuplot('set xlabel "Dimension"')
   gnuplot('set ylabel "Time [s]"')
-  gnuplot('set title "Performance of SDP solver on dimension of the problem."')
+  gnuplot('set title "Performance of the SDP solver based on dimension of the problem."')
   
   tempFiles = []
   for path in files:
@@ -133,7 +133,7 @@ if args.plot:
     # plot
     plotFile = tempfile.NamedTemporaryFile()
     tempFiles.append(plotFile)
-    plot = gnuplot.replot(gp.Data(dims, plotData, title = date + ' ' + parts[3], with_ = 'lines', filename=plotFile.name))
+    plot = gnuplot.replot(gp.Data(dims, plotData, title = date + ' ' + parts[3], with_ = 'lines linewidth 1.5', filename=plotFile.name))
 
   print('\nPress enter to continue')
   input()
