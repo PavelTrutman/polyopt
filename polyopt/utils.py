@@ -61,8 +61,11 @@ class Utils:
         for j in range(i, dim):
           Aij = einsum('ij,ji->', AAllinv[i], AAllinv[j])
           Fdd[i, j] += Aij
-          if i != j:
-            Fdd[j, i] += Aij
+
+    # symetrize hessian
+    for i in range(1, dim):
+      for j in range(0, i):
+        Fdd[i, j] = Fdd[j, i]
 
     return Fd, Fdd, A
 
