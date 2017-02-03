@@ -3,3 +3,4 @@ sympy
 mpmath
 scipy
 gnuplot-py
+pycallgraph
