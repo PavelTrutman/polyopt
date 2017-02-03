@@ -17,6 +17,7 @@ import argparse
 import gnuplot as gp
 import glob
 import os
+import tempfile
 
 
 # command line argument parser
@@ -30,23 +31,25 @@ args = parser.parse_args()
 # benchmarking
 if args.bench:
   # dimension: 1, ..., 10
-  dim = [1, 2, 3, 5, 7, 10, 13, 16, 20, 25]
+  dim = [1, 2, 3, 4, 6, 8, 10, 12, 15, 18, 21, 24, 28, 32, 36, 40, 45, 50, 55, 60]
   
   # number of trials
-  N = range(0, 20)
+  N = 20
   
+  # theshold ofexecution time in seconds
+  threshold = 1.5
+
   # initialize the array with result times
-  results = empty([max(dim) + 1, len(N)])
+  results = empty([max(dim) + 1, N])
   results.fill(nan)
   
   # for dimension
   for n in dim:
   
-    # clear measured time
-    #t = 0
+    print('dimension:', '{:<3d} '.format(n), end='', flush=True)
   
     # for different feasible points
-    for i in N:
+    for i in range(0, N):
   
       # starting point
       startPoint = zeros((n, 1));
@@ -73,8 +76,14 @@ if args.bench:
   
       # final time
       results[n, i] = timeit.default_timer() - timeStart
+
+      print('.', end='', flush=True)
+
+    print()
+
+    if sum(results[n, :]) > 20*threshold:
+      break
   
-    print('dimension:', n)
     #results[n] = t/len(N)
   
   # median computation
@@ -103,6 +112,7 @@ if args.plot:
   gnuplot('set ylabel "Time [s]"')
   gnuplot('set title "Performance of SDP solver on dimension of the problem."')
   
+  tempFiles = []
   for path in files:
     # load data from file
     data = load(path)
@@ -119,8 +129,15 @@ if args.plot:
       if not isnan(data[n]):
         dims.append(n)
         plotData.append(data[n])
-    
-    plot = gnuplot.replot(gp.Data(dims, plotData, title = date + ' ' + parts[3], with_ = 'lines'))
+
+    # plot
+    plotFile = tempfile.NamedTemporaryFile()
+    tempFiles.append(plotFile)
+    plot = gnuplot.replot(gp.Data(dims, plotData, title = date + ' ' + parts[3], with_ = 'lines', filename=plotFile.name))
 
   print('\nPress enter to continue')
   input()
+
+  # close temp files
+  for tempFile in tempFiles:
+    tempFile.close()
