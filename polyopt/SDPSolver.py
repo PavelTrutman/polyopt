@@ -288,11 +288,13 @@ class SDPSolver:
 
     while True:
       k += 1
-      self.logStdout.info('\nk = ' + str(k))
+      if self.logStdout.isEnabledFor(logging.INFO):
+        self.logStdout.info('\nk = ' + str(k))
 
       # iteration step
       y = y - solve(Fdd, Fd)/(1+FdLN)
-      self.logStdout.info('y = ' + str(y))
+      if self.logStdout.isEnabledFor(logging.INFO):
+        self.logStdout.info('y = ' + str(y))
 
       if self.drawPlot:
         y0All.append(y[0, 0])
@@ -351,7 +353,8 @@ class SDPSolver:
 
     while True:
       k += 1
-      self.logStdout.info('\nk = ' + str(k))
+      if self.logStdout.isEnabledFor(logging.INFO):
+        self.logStdout.info('\nk = ' + str(k))
 
       # gradient and hessian
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, x, self.boundR)
@@ -364,8 +367,9 @@ class SDPSolver:
         x0All.append(x[0, 0])
         x1All.append(x[1, 0])
 
-      self.logStdout.info('t = ' + str(t))
-      self.logStdout.info('x = ' + str(x))
+      if self.logStdout.isEnabledFor(logging.INFO):
+        self.logStdout.info('t = ' + str(t))
+        self.logStdout.info('x = ' + str(x))
 
       # print eigenvalues
       if self.logStdout.isEnabledFor(logging.INFO):
@@ -375,7 +379,8 @@ class SDPSolver:
           self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
       # breaking condition
-      self.logStdout.info('Breaking condition = ' + str(eps*t))
+      if self.logStdout.isEnabledFor(logging.INFO):
+        self.logStdout.info('Breaking condition = ' + str(eps*t))
       if eps*t >= self.nu + (beta + sqrt(self.nu))*beta/(1 - beta):
         break
 
