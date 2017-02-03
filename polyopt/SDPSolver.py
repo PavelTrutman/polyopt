@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 
 import sympy as sp
-from utils import Utils
+from .utils import Utils
 import gnuplot as gp
 import logging
 import sys
 from numpy import *
 from numpy.linalg import *
+import tempfile
 
 # some constants
 beta = 1/9
@@ -63,6 +64,21 @@ class SDPSolver:
     self.logStdout = logging.getLogger()
 
 
+  def __del__(self):
+    """
+    Destructor of the object.
+
+    Returns:
+      None
+    """
+
+    # clean up temporary files
+    if self.drawPlot:
+      self.setPlotFile.close()
+      self.dampedNewtonPlotFile.close()
+      self.mainPathPlotFile.close()
+
+
   def setDrawPlot(self, drawPlot):
     """
     Enables or disables the drawing of the graph.
@@ -90,6 +106,9 @@ class SDPSolver:
       # self-concordant barrier
       X = self.AAll[0][0] + self.AAll[0][1]*x + self.AAll[0][2]*y
 
+      # create temp file for gnuplot
+      self.setPlotFile = tempfile.NamedTemporaryFile()
+
       # plot and save the set into file
       self.gnuplot = gp.Gnuplot()
       self.gnuplot('set view map')
@@ -97,13 +116,13 @@ class SDPSolver:
       self.gnuplot('set cntrparam levels discrete 0')
       self.gnuplot('unset surface')
       self.gnuplot('set isosamples 2000, 2000')
-      self.gnuplot('set table "tmp/setPlot.dat"')
+      self.gnuplot('set table "' + str(self.setPlotFile.name) + '"')
       setPlot = self.gnuplot.splot(str(sp.Matrix(X).det()))
       self.gnuplot('unset table')
       self.gnuplot.reset()
 
       # plot the set
-      self.plot = self.gnuplot.plot('"tmp/setPlot.dat" using 1:2 with lines title "Set boundary"')
+      self.plot = self.gnuplot.plot('"' + str(self.setPlotFile.name) + '" using 1:2 with lines title "Set boundary"')
 
 
   def setPrintOutput(self, printOutput):
@@ -296,7 +315,8 @@ class SDPSolver:
 
     # plot auxiliary path
     if self.drawPlot:
-      self.gnuplot.replot(gp.Data(y0All, y1All, title = 'Damped Newton', with_ = 'points pt 1', filename = 'tmp/dampedNewton.dat'))
+      self.dampedNewtonPlotFile = tempfile.NamedTemporaryFile()
+      self.gnuplot.replot(gp.Data(y0All, y1All, title = 'Damped Newton', with_ = 'points pt 1', filename = self.dampedNewtonPlotFile.name))
 
     return y
 
@@ -365,7 +385,8 @@ class SDPSolver:
 
     # plot main path
     if self.drawPlot:
-      self.gnuplot.replot(gp.Data(x0All, x1All, title = 'Main path', with_ = 'points pt 1', filename = 'tmp/mainPath.dat'))
+      self.mainPathPlotFile = tempfile.NamedTemporaryFile()
+      self.gnuplot.replot(gp.Data(x0All, x1All, title = 'Main path', with_ = 'points pt 1', filename = self.mainPathPlotFile.name))
       print('\nPress enter to continue')
       input()
 

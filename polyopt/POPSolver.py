@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-from utils import Utils
-from SDPSolver import SDPSolver
+from .utils import Utils
+from .SDPSolver import SDPSolver
 from math import ceil
 from scipy.misc import comb
 from numpy.random import uniform

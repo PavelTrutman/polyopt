@@ -7,7 +7,7 @@ by Pavel Trutman, pavel.trutman@fel.cvut.cz
 """
 
 from numpy import *
-from POPSolver import POPSolver
+import polyopt
 
 # objective function
 # f(x, y) = (x - 1)^2 + (y - 2)^2
@@ -23,7 +23,7 @@ g = {(0, 0): 3**2, (2, 0): -1, (0, 2): -1}
 d = 2
 
 # initialize the solver
-POP = POPSolver(f, g, d)
+POP = polyopt.POPSolver(f, g, d)
 
 # obtain some feasible point for the SDP problem (within ball with radius 3)
 y0 = POP.getFeasiblePoint(3)

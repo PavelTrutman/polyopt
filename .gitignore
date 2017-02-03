@@ -3,5 +3,4 @@ __pycache__/
 *$py.class
 *.swp
 
-performanceResults/
-tmp/*
+/polyopt.egg-info/

@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 import unittest
-from SDPSolver import SDPSolver
+from polyopt import SDPSolver
 from numpy import *
 from numpy.linalg import *
-from utils import Utils
+from polyopt.utils import Utils
 from time import process_time
 
 class TestSDPSolver(unittest.TestCase):

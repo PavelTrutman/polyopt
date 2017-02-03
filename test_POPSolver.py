@@ -3,8 +3,7 @@
 import unittest
 from numpy import *
 from numpy.linalg import *
-from POPSolver import POPSolver
-from utils import Utils
+from polyopt import POPSolver
 from time import process_time
 
 class TestPOPSolver(unittest.TestCase):

@@ -7,7 +7,7 @@ by Pavel Trutman, pavel.trutman@fel.cvut.cz
 """
 
 from numpy import *
-from SDPSolver import SDPSolver
+import polyopt
 
 # Problem statement
 # min c0*x0 + c1*x1
@@ -24,7 +24,7 @@ A1 = array([[0, 1, 0],
 startPoint = array([[0], [0]])
 
 # create the solver object
-problem = SDPSolver(c, [[eye(3), A0, A1]])
+problem = polyopt.SDPSolver(c, [[eye(3), A0, A1]])
 
 # enable graphs
 problem.setDrawPlot(True)
