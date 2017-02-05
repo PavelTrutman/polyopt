@@ -149,7 +149,7 @@ if args.bench:
 
           print('.', end='', flush=True)
   
-        print(' {:3.2f} s'.format(nanmedian(t)), sep='')
+        print(' {:5.2f} s'.format(nanmedian(t)), sep='')
         results[n, dF, dR] = nanmedian(t)
   
   save('data/POP.npy', results)

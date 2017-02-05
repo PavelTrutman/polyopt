@@ -79,7 +79,7 @@ if args.bench:
 
       print('.', end='', flush=True)
 
-    print(' {:3.2f} s'.format(sum(results[n, :])/N))
+    print(' {:5.2f} s'.format(sum(results[n, :])/N))
 
     if sum(results[n, :]) > N*threshold:
       break
