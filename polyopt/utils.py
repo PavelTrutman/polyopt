@@ -54,7 +54,7 @@ class Utils:
 
       # gradient
       for i in range(0, dim):
-        Fd[i, 0] += -trace(AAllinv[i])
+        Fd[i, 0] -= einsum('ii->', AAllinv[i])
 
       # hessian
       for i in range(0, dim):
