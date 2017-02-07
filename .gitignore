@@ -6,3 +6,4 @@ __pycache__/
 /polyopt.egg-info/
 /performance/data/*
 /profiler/profile.png
+/profiler/profile.dot
