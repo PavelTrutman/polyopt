@@ -29,7 +29,7 @@ class Utils:
     return sqrt(dot((solve(hessian, u)).T, u))[0,0]
 
 
-  def gradientHessian(AAll, x, R = None):
+  def gradientHessian(AAll, x):
     """
     Compute gradient and hessian analytically.
     """
@@ -65,25 +65,6 @@ class Utils:
     Fdd = Fdd + Fdd.T
 
     return Fd, Fdd, A
-
-
-#  def concatenateDiagonal(A, B):
-#    """
-#    Concatenate two matrix along the diagonal.
-#
-#        | A  0 |
-#    M = |      |
-#        | 0  B |
-#
-#    Args:
-#      A (Matrix): first matrix to cocatenate
-#      B (Matrix): second matrix to concatenate
-#
-#    Returns:
-#      Matrix: result of the concatenation
-#    """
-#
-#    return A.row_join(zeros(A.rows, B.cols)).col_join(zeros(B.rows, A.cols).row_join(B))
 
 
   def randomSymetric(dim):
