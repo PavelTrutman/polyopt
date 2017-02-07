@@ -58,14 +58,11 @@ class Utils:
 
       # hessian
       for i in range(0, dim):
-        for j in range(i, dim):
-          Aij = einsum('ij,ji->', AAllinv[i], AAllinv[j])
-          Fdd[i, j] += Aij
+        Fdd[i, i] += einsum('ij,ji->', AAllinv[i], AAllinv[i])/2
+        for j in range(i + 1, dim):
+          Fdd[i, j] += einsum('ij,ji->', AAllinv[i], AAllinv[j])
 
-    # symetrize hessian
-    for i in range(1, dim):
-      for j in range(0, i):
-        Fdd[i, j] = Fdd[j, i]
+    Fdd = Fdd + Fdd.T
 
     return Fd, Fdd, A
 
