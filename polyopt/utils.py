@@ -39,18 +39,16 @@ class Utils:
 
     Fd = zeros((dim, 1))
     Fdd = zeros((dim, dim))
-    A = [None]*len(AAll)
+    A = []
 
-    for a in range(0, len(AAll)):
+    for a in AAll:
 
-      A[a] = copy(AAll[a][0])
-      for i in range(1, len(AAll[a])):
-        A[a] += AAll[a][i]*x[i - 1, 0]
+      ANew = copy(a[0])
+      for i in range(1, len(a)):
+        ANew += a[i]*x[i - 1, 0]
 
-      Ainv = inv(A[a])
-      AAllinv = [None]*dim
-      for i in range(0, dim):
-        AAllinv[i] = dot(Ainv, AAll[a][i + 1])
+      Ainv = inv(ANew)
+      AAllinv = [dot(Ainv, ai) for ai in a[1:]]
 
       # gradient
       for i in range(0, dim):
@@ -61,6 +59,8 @@ class Utils:
         Fdd[i, i] += einsum('ij,ji->', AAllinv[i], AAllinv[i])/2
         for j in range(i + 1, dim):
           Fdd[i, j] += einsum('ij,ji->', AAllinv[i], AAllinv[j])
+
+      A.append(ANew)
 
     Fdd = Fdd + Fdd.T
 
