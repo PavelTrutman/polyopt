@@ -23,67 +23,67 @@ class TestSDPSolver(unittest.TestCase):
 
     # prepare set of testing cases
     data0 = {
-      'c': matrix([[1], [1]]),
+      'c': array([[1], [1]]),
       'A': [[identity(3),
-            matrix([[1,  0,  0],
+            array([[1,  0,  0],
                     [0, -1,  0],
                     [0,  0, -1]]),
-            matrix([[0,  1,  0],
+            array([[0,  1,  0],
                     [1,  0,  1],
                     [0,  1,  0]])]],
-      'startPoint': matrix([[0], [0]]),
-      'result': matrix([[-0.777673169427983], [-0.592418253409468]])
+      'startPoint': array([[0], [0]]),
+      'result': array([[-0.777673169427983], [-0.592418253409468]])
     }
 
     data1 = {
-      'c': matrix([[1], [1]]),
+      'c': array([[1], [1]]),
       'A': [[identity(3),
-            matrix([[ 1,  0, -1],
+            array([[ 1,  0, -1],
                     [ 0, -1,  0],
                     [-1,  0, -1]]),
-            matrix([[ 0,  1,  0],
+            array([[ 0,  1,  0],
                     [ 1,  0,  1],
                     [ 0,  1,  0]])]],
-      'startPoint': matrix([[0], [0]]),
-      'result': matrix([[-0.541113957864176], [-0.833869642997048]])
+      'startPoint': array([[0], [0]]),
+      'result': array([[-0.541113957864176], [-0.833869642997048]])
     }
 
     data2 = {
-      'c': matrix([[1], [1], [1]]),
+      'c': array([[1], [1], [1]]),
       'A': [[identity(3),
-            matrix([[1,  0,  0],
+            array([[1,  0,  0],
                     [0, -1,  0],
                     [0,  0, -1]]),
-            matrix([[0,  1,  0],
+            array([[0,  1,  0],
                     [1,  0,  1],
                     [0,  1,  0]]),
-            matrix([[0,  0,  0],
+            array([[0,  0,  0],
                     [0,  0, -1],
                     [0, -1,  0]])]],
-      'startPoint': matrix([[0], [0], [0]]),
-      'result': matrix([[-0.987675582117481], [-0.0243458354034874], [-1.98752220767823]])
+      'startPoint': array([[0], [0], [0]]),
+      'result': array([[-0.987675582117481], [-0.0243458354034874], [-1.98752220767823]])
     }
 
     # unbounded example manualy bounded
     data3 = {
-      'c': matrix([[1], [1]]),
+      'c': array([[1], [1]]),
       'A': [[identity(3),
-            matrix([[1, 1, 0],
+            array([[1, 1, 0],
                     [1, 1, 0],
                     [0, 0, 0]]),
-            matrix([[1, 0, 1],
+            array([[1, 0, 1],
                     [0, 0, 1],
                     [1, 1, 1]])],
             [identity(3),
-            matrix([[0, 1, 0],
+            array([[0, 1, 0],
                     [1, 0, 0],
                     [0, 0, 0]]),
-            matrix([[0, 0, 1],
+            array([[0, 0, 1],
                     [0, 0, 0],
                     [1, 0, 0]])],
            ],
-      'startPoint': matrix([[0], [0]]),
-      'result': matrix([[-0.367456763013021], [-0.228720901608749]])
+      'startPoint': array([[0], [0]]),
+      'result': array([[-0.367456763013021], [-0.228720901608749]])
     }
     parameters = [data0, data1, data2, data3]
 
@@ -114,30 +114,30 @@ class TestSDPSolver(unittest.TestCase):
 
     # prepare set of testing cases
     data0 = {
-      'c': matrix([[1], [1]]),
+      'c': array([[1], [1]]),
       'A': [identity(3), 
-            matrix([[1, 1, 0],
+            array([[1, 1, 0],
                     [1, 1, 0],
                     [0, 0, 0]]),
-            matrix([[1, 0, 1],
+            array([[1, 0, 1],
                     [0, 0, 1],
                     [1, 1, 1]])],
-      'startPoint': matrix([[0], [0]])
+      'startPoint': array([[0], [0]])
     }
 
     data1 = {
-      'c': matrix([[1], [1], [1]]),
+      'c': array([[1], [1], [1]]),
       'A': [identity(3), 
-            matrix([[1,  0,  0],
+            array([[1,  0,  0],
                     [0, -1,  0],
                     [0,  0, -1]]),
-            matrix([[0,  1,  0],
+            array([[0,  1,  0],
                     [1,  0,  1],
                     [0,  1,  0]]),
-            matrix([[1,  1,  0],
+            array([[1,  1,  0],
                     [1,  0,  1],
                     [0,  1,  1]])],
-      'startPoint': matrix([[0], [0], [0]])
+      'startPoint': array([[0], [0], [0]])
     }
     parameters = [data0, data1]
 
