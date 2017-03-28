@@ -9,11 +9,6 @@ from numpy import *
 from numpy.linalg import *
 import tempfile
 
-# some constants
-beta = 1/9
-gamma = 5/36
-
-
 class SDPSolver:
   """
   Class providing SDP Solver.
@@ -27,6 +22,11 @@ class SDPSolver:
 
   by Pavel Trutman, pavel.tutman@fel.cvut.cz
   """
+
+  # some constants
+  beta = 1/9
+  gamma = 5/36
+  eps = 1e-3
 
 
   def __init__(self, c, AAll):
@@ -51,7 +51,7 @@ class SDPSolver:
     self.c = c
     self.dim = c.shape[0]
     self.AAll = AAll
-    self.nu = self.getNu();
+    self.nu = self.getNu()
 
     # disable self-bounding
     self.boundR = None
@@ -228,7 +228,7 @@ class SDPSolver:
       self.logStdout.info('\nk = ' + str(k))
 
       # iteration step
-      t = t - gamma/Utils.LocalNorm(Fd0, FddInv)
+      t = t - self.gamma/Utils.LocalNorm(Fd0, FddInv)
       y = y - dot(FddInv, (t*Fd0 + Fd))
       #self.logStdout.info('t = ' + str(t))
       self.logStdout.info('y = ' + str(y))
@@ -249,7 +249,7 @@ class SDPSolver:
           self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
       # breaking condition
-      if Utils.LocalNorm(Fd, FddInv) <= sqrt(beta)/(1 + sqrt(beta)):
+      if Utils.LocalNorm(Fd, FddInv) <= sqrt(self.beta)/(1 + sqrt(self.beta)):
         break
 
     # prepare x
@@ -312,7 +312,7 @@ class SDPSolver:
           self.logStdout.info('EIG[' + str(i) + '] = ' + str(eigs))
 
       # breaking condition
-      if FdLN <= beta:
+      if FdLN <= self.beta:
         break
 
     # plot auxiliary path
@@ -343,7 +343,6 @@ class SDPSolver:
 
     # initialization of the iteration process
     t = 0
-    eps = 10**(-3)
     k = 0
 
     # print the input condition to verify that is satisfied
@@ -360,7 +359,7 @@ class SDPSolver:
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, x)
 
       # iteration step
-      t = t + gamma/Utils.LocalNormA(self.c, Fdd)
+      t = t + self.gamma/Utils.LocalNormA(self.c, Fdd)
       x = x - solve(Fdd, (t*self.c + Fd))
 
       if self.drawPlot:
@@ -380,8 +379,8 @@ class SDPSolver:
 
       # breaking condition
       if self.logStdout.isEnabledFor(logging.INFO):
-        self.logStdout.info('Breaking condition = ' + str(eps*t))
-      if eps*t >= self.nu + (beta + sqrt(self.nu))*beta/(1 - beta):
+        self.logStdout.info('Breaking condition = ' + str(self.eps*t))
+      if self.eps*t >= self.nu + (self.beta + sqrt(self.nu))*self.beta/(1 - self.beta):
         break
 
     self.solved = True
