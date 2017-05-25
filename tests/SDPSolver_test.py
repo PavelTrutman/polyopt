@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 import unittest
+import polyopt
 from polyopt import SDPSolver
 from numpy import *
 from numpy.linalg import *
-from polyopt.utils import Utils
 from time import process_time
 
 class TestSDPSolver(unittest.TestCase):
@@ -172,7 +172,7 @@ class TestSDPSolver(unittest.TestCase):
         # get LMI matrices
         A = [eye(n)];
         for i in range(0, n):
-          A.append(Utils.randomSymetric(n))
+          A.append(polyopt.utils.randomSymetric(n))
 
         # init SDP program
         problem = SDPSolver(c, [A])
@@ -218,7 +218,7 @@ class TestSDPSolver(unittest.TestCase):
         # get LMI matrices
         A = [identity(n)];
         for i in range(0, n):
-          A.append(Utils.randomSymetric(n))
+          A.append(polyopt.utils.randomSymetric(n))
 
         # init SDP program
         problem = SDPSolver(c, [A])

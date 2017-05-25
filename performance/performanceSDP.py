@@ -7,9 +7,9 @@ by Pavel Trutman, pavel.trutman@fel.cvut.cz
 """
 
 from numpy import *
+import polyopt
 from polyopt import SDPSolver
 import timeit
-from polyopt.utils import Utils
 import time
 import subprocess
 import warnings
@@ -60,7 +60,7 @@ if args.bench:
       # get LMI matrices
       A = [identity(n)];
       for _ in range(0, n):
-        A.append(Utils.randomSymetric(n))
+        A.append(polyopt.utils.randomSymetric(n))
   
       # init SDP program
       problem = SDPSolver(c, [A])
