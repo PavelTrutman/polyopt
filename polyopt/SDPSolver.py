@@ -397,9 +397,14 @@ class SDPSolver:
     return x
 
 
-  def eigenvalues(self):
+  def eigenvalues(self, constraints='original'):
     """
     Returns eigenvalues of the barrier matrix at the optimal point.
+
+    Args:
+      constraints (str): 'all' - print eigenvalues of all constraints
+                         'original' - print eigenvalues only of the original constraints
+                         'bounded' - print eigenvalues of the aritificial bounding constraint
 
     Returns:
       list: eigenvalues
@@ -410,8 +415,20 @@ class SDPSolver:
 
     if self.solved:
       eigsAll = []
-      for i in range(0, len(self.resultA)):
-        eigs, _ = eig(self.resultA[i])
+      ASize = 0
+
+      if self.boundR != None:
+        if (constraints == 'all') | (constraints == 'bounded'):
+          eigs = eigvalsh(self.resultA[-1])
+          eigsAll.extend(eigs)
+        if (constraints == 'all') | (constraints == 'original'):
+          ASize = len(self.resultA) - 1
+      else:
+        if (constraints == 'all') | (constraints == 'original'):
+          ASize = len(self.resultA)
+
+      for i in range(0, ASize):
+        eigs = eigvalsh(self.resultA[i])
         eigsAll.extend(eigs)
       eigsAll.sort()
       return eigsAll

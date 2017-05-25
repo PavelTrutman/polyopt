@@ -97,7 +97,7 @@ class TestSDPSolver(unittest.TestCase):
         self.assertLessEqual(norm(problem.solve(parameters[i]['startPoint'], problem.auxFollow) - parameters[i]['result']), 10**(-5))
 
         # the matrix have to be semidefinite positive (eigenvalues >= 0)
-        eigs = problem.eigenvalues()
+        eigs = problem.eigenvalues('all')
         for eig in eigs:
           self.assertGreaterEqual(eig, 0)
 
@@ -187,7 +187,7 @@ class TestSDPSolver(unittest.TestCase):
         #print(elapsedTime)
 
         # the matrix have to be semidefinite positive (eigenvalues >= 0)
-        eigs = problem.eigenvalues()
+        eigs = problem.eigenvalues('all')
         for eig in eigs:
           self.assertGreaterEqual(eig, 0)
 
@@ -233,7 +233,7 @@ class TestSDPSolver(unittest.TestCase):
         #print(elapsedTime)
 
         # the matrix have to be semidefinite positive (eigenvalues >= 0)
-        eigs = problem.eigenvalues()
+        eigs = problem.eigenvalues('all')
         for eig in eigs:
           self.assertGreaterEqual(eig, 0)
 

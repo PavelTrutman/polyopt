@@ -36,7 +36,7 @@ if args.bench:
   # number of trials
   N = 20
   
-  # theshold ofexecution time in seconds
+  # theshold of the execution time in seconds
   threshold = 1.5
 
   # initialize the array with result times
