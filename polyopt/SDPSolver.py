@@ -2,6 +2,7 @@
 
 import sympy as sp
 from .utils import Utils
+from .linalg import Linalg
 import gnuplot as gp
 import logging
 import sys
@@ -434,6 +435,27 @@ class SDPSolver:
       return eigsAll
     else:
       raise ValueError('The problem has not been solved yet so the eignevalues can not be evaluated.')
+
+
+  def ranks(self):
+    """
+    Computes the ranks of the matrices at the optimal point.
+
+    Return:
+      list: ranks of the matrices
+
+    Throws:
+      ValueError: when the problem has not been solved yet
+    """
+
+    if self.solved:
+      if self.boundR != None:
+        cnstrs = self.resultA[-1]
+      else:
+        cnstrs = self.resultA
+      return [Linalg.rank(a, self.eps, self.eps) for a in cnstrs]
+    else:
+      raise ValueError('The problem has not been solved yet so the ranks of the constraints can not be evaluated.')
 
 
   def getNu(self):

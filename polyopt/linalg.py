@@ -63,3 +63,31 @@ class Linalg:
     H = np.eye(a.shape[0])
     H -= (2 / np.dot(v, v)) * np.dot(v[:, None], v[None, :])
     return H
+
+
+  def rank(matrix, decayThreshold, zeroThreshold):
+    """
+    Computes numerical rank of the given matrix.
+
+    Args:
+      matrix (array): a matrix to analyze
+      dacayThreshold (float): maximal decay of two subsequent nonzero singular values
+      zeroThreshold (float): singular values smaller than this threshold are considered as zero
+
+    Returns:
+      int: rank of the matrix
+    """
+
+    _, s, _ = np.linalg.svd(matrix)
+
+    if (len(s) != 0) and (s[0] > zeroThreshold):
+      rank = 1
+    else:
+      return 0
+
+    for s1, s2 in zip(s, s[1:]):
+      if (s2 > zeroThreshold) and (s2/s1 > decayThreshold):
+        rank += 1
+      else:
+        break
+    return rank

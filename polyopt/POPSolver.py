@@ -34,7 +34,7 @@ class POPSolver:
     # check that the relaxation order is high enough
     gDegsHalf = [int(ceil(max([sum(k) for k in gi.keys()])/2)) for gi in g]
     if max(gDegsHalf) > d:
-      raise ValueError('The relaxation order has to be at least {:d}.'.format(int(ceil(gDeg/2))))
+      raise ValueError('The relaxation order has to be at least {:d}.'.format(max(gDegsHalf)))
 
     # get number of variables
     key = list(f.keys())[0]
@@ -221,7 +221,8 @@ class POPSolver:
 
 
   def getFeasiblePoint(self, R):
-    """Finds feasible point for SDP problem arisen from the POP problem.
+    """
+    Finds feasible point for SDP problem arisen from the POP problem.
 
     Args:
       R (int): a radius of a ball from which x points are choosen
@@ -256,3 +257,17 @@ class POPSolver:
     y = y / N
 
     return y
+
+
+  def momentMatrixRank(self):
+    """
+    Returns rank of the moment matrix at the optimal point.
+
+    Returns:
+      int: rank of the moment matrix
+
+    Throws:
+      ValueError: when the problem has not been solved yet
+    """
+
+    return self.SDP.ranks()[0]

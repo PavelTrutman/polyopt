@@ -35,3 +35,4 @@ POP.setPrintOutput(True)
 x = POP.solve(y0)
 print(x)
 
+print('Rank of the moment matrix: ', POP.momentMatrixRank())
