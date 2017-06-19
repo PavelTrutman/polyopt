@@ -27,13 +27,13 @@ class POPSolver:
 
     Args:
       f (dictionary: tuple => int): representation of the objective function f(x)
-      g (dictionary: tuple => int): representation of the constraining function g(x)
+      g (list of dictionaries: tuple => int): representation of the constraining functions g(x)
       d (int): degree of the relaxation
     """
 
     # check that the relaxation order is high enough
-    gDeg = max([sum(k) for k in g.keys()])
-    if ceil(gDeg/2) > d:
+    gDegsHalf = [int(ceil(max([sum(k) for k in gi.keys()])/2)) for gi in g]
+    if max(gDegsHalf) > d:
       raise ValueError('The relaxation order has to be at least {:d}.'.format(int(ceil(gDeg/2))))
 
     # get number of variables
@@ -53,7 +53,7 @@ class POPSolver:
 
     # generate moment matrix and localizing matrix
     self.MM = self.momentMatrix(self.d, varUsed)
-    self.LM = self.localizingMatrix(self.d - 1, varUsed, g)
+    self.LM = [self.localizingMatrix(self.d - ri, varUsed, gi) for gi, ri in zip(g, gDegsHalf)]
 
     # generate objective function for SDP
     self.c = zeros((len(varUsed) - 1, 1))
@@ -61,7 +61,7 @@ class POPSolver:
       self.c[variable - 1, 0] = f.get(varUsed[variable], 0)
 
     # initialize SDP Solver
-    self.SDP = SDPSolver(self.c, [self.MM, self.LM])
+    self.SDP = SDPSolver(self.c, [self.MM] + self.LM)
 
 
   def solve(self, startPoint):
