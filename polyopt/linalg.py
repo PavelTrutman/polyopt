@@ -10,12 +10,13 @@ class Linalg:
   """
 
 
-  def qr(A):
+  def qr(A, useLast=False):
     """
     Rank revealing QR decomposition.
 
     Args:
       A (array): matrix to be decomposed
+      useLast (bool): whether use last column in the first iteration
 
     Returns:
       array: matrix Q
@@ -27,17 +28,22 @@ class Linalg:
     m, n = A.shape
     Q = np.eye(m)
     p = list(range(n))
-    for i in range(n - (m == n)):
+    if min(m, n) <= 1 and useLast:
+      return np.eye(1), A, [p[-1]] + p[:-1]
+    for i, _ in zip(range(n - 1), range(m - 1)):
       H = np.eye(m)
 
       # find the most nondependent column
-      vMax = 0
-      kMax = i
-      for k in range(i, n):
-        v = np.linalg.norm(A[i:, k])
-        if v > vMax:
-          vMax = v
-          kMax = k
+      if (i == 0) and useLast:
+        kMax = n - 1
+      else:
+        vMax = 0
+        kMax = i
+        for k in range(i, n):
+          v = np.linalg.norm(A[i:, k])
+          if v > vMax:
+            vMax = v
+            kMax = k
       A[:, [i, kMax]] = A[:, [kMax, i]]
       p[i], p[kMax] = p[kMax], p[i]
 
