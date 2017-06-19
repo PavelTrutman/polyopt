@@ -31,6 +31,11 @@ class POPSolver:
       d (int): degree of the relaxation
     """
 
+    # check that the relaxation order is high enough
+    gDeg = max([sum(k) for k in g.keys()])
+    if ceil(gDeg/2) > d:
+      raise ValueError('The relaxation order has to be at least {:d}.'.format(int(ceil(gDeg/2))))
+
     # get number of variables
     key = list(f.keys())[0]
     self.n = len(key)
