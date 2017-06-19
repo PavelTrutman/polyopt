@@ -26,7 +26,9 @@ d = 2
 POP = polyopt.POPSolver(f, g, d)
 
 # obtain some feasible point for the SDP problem (within ball with radius 3)
-y0 = POP.getFeasiblePoint(3)
+y0 = POP.getFeasiblePointFromRadius(3)
+# or select some feasible points of the polynomial optimization problem
+y0 = POP.getFeasiblePoint([array([[1],[1]]), array([[2],[2]]), array([[-1], [-1]]), array([[-2], [1]]), array([[1], [2]]), array([[0], [2]])])
 
 # enable outputs
 POP.setPrintOutput(True)

@@ -31,7 +31,7 @@ class TestPOPSolver(unittest.TestCase):
         problem = POPSolver(f, g, degree)
 
         # solve and compare the results
-        x = problem.solve(problem.getFeasiblePoint(3))
+        x = problem.solve(problem.getFeasiblePointFromRadius(3))
         self.assertLessEqual(norm(x - solution), 10**(-3))
 
 
@@ -52,7 +52,7 @@ class TestPOPSolver(unittest.TestCase):
         problem = POPSolver(f, g, degree)
 
         # solve and compare the results
-        x = problem.solve(problem.getFeasiblePoint(3))
+        x = problem.solve(problem.getFeasiblePointFromRadius(3))
         self.assertLessEqual(norm(x - solution), 10**(-3))
 
 
@@ -73,7 +73,7 @@ class TestPOPSolver(unittest.TestCase):
         problem = POPSolver(f, g, degree)
 
         # solve and compare the results
-        x = problem.solve(problem.getFeasiblePoint(1))
+        x = problem.solve(problem.getFeasiblePointFromRadius(1))
         self.assertLessEqual(norm(x - solution), 10**(-3))
 
 

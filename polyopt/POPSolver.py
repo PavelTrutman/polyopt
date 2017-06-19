@@ -220,7 +220,38 @@ class POPSolver:
     return variables
 
 
-  def getFeasiblePoint(self, R):
+  def getFeasiblePoint(self, xs):
+    """
+    Finds feasible point for SDP problem arisen from the POP problem.
+
+    Args:
+      xs (list of array): list of feasible points
+
+    Returns:
+      array: feasible point for the SDP problem
+    """
+
+    N = comb(self.n + self.d, self.n)
+    if len(xs) < N:
+      raise ValueError('You must provide at least {:d} points.'.format(int(N)))
+
+    # generate all variables
+    usedVars = self.generateVariablesUpDegree(2*self.d)[1:]
+
+    y = zeros((len(usedVars), 1))
+    for x in xs:
+      # generate points y from it
+      for alpha in range(0, len(usedVars)):
+        yTemp = 1
+        for j in range(0, self.n):
+          yTemp *= x[j, 0]**usedVars[alpha][j]
+        y[alpha, 0] += yTemp
+    y = y / len(xs)
+
+    return y
+
+
+  def getFeasiblePointFromRadius(self, R):
     """
     Finds feasible point for SDP problem arisen from the POP problem.
 
@@ -234,11 +265,8 @@ class POPSolver:
     N = comb(self.n + self.d, self.n)
     N = ceil(N*1.5 + 1)
 
-    # generate all variable
-    usedVars = self.generateVariablesUpDegree(2*self.d)[1:]
-
-    y = zeros((len(usedVars), 1))
     i = 0
+    xs = []
 
     # choose many points x to moment matrix have full rank
     while i < N:
@@ -246,17 +274,10 @@ class POPSolver:
       # select x from the ball with given radius
       x = uniform(-R, R, (self.n, 1))
       if norm(x) < R:
-        
-        # generate points y from it
-        for alpha in range(0, len(usedVars)):
-          yTemp = 1
-          for j in range(0, self.n):
-            yTemp *= x[j, 0]**usedVars[alpha][j]
-          y[alpha, 0] += yTemp
+        xs.append(x)
         i += 1
-    y = y / N
 
-    return y
+    return self.getFeasiblePoint(xs)
 
 
   def momentMatrixRank(self):
