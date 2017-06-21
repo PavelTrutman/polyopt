@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from .SDPSolver import SDPSolver
+from .polalg import Polalg
 from math import ceil
 from scipy.misc import comb
 from numpy.random import uniform
@@ -165,44 +166,6 @@ class POPSolver:
     return LM
 
 
-  def generateVariablesDegree(self, d, n):
-    """
-    Generates whole set of variables of given degree.
-
-    Args:
-      d (int): degree of the variables
-      n (int): number of unknowns
-
-    Returns:
-      list: list of all variables
-    """
-
-    # generate zero degree variables
-    if d == 0:
-      return [(0,)*n]
-
-    # generrate one degree variables
-    elif d == 1:
-      variables = []
-      for i in range(0, n):
-        t = [0]*n
-        t[i] = 1
-        variables.append(tuple(t))
-      return variables
-
-    # there is only one unkown with the degree d
-    elif n == 1:
-      return [(d,)]
-
-    # generate variables in general case
-    else:
-      variables = []
-      for i in range(0, d + 1):
-        innerVariables = self.generateVariablesDegree(d - i, n - 1)
-        variables.extend([v + (i,) for v in innerVariables])
-      return variables
-  
-
   def generateVariablesUpDegree(self, d):
     """
     Generates whole set of variables up to given degree.
@@ -214,10 +177,7 @@ class POPSolver:
       list: list of variables
     """
 
-    variables = []
-    for i in range(0, d + 1):
-      variables.extend(self.generateVariablesDegree(i, self.n))
-    return variables
+    return Polalg.generateVariablesUpDegree(d, self.n)
 
 
   def getFeasiblePoint(self, xs):
