@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import numpy as np
+import scipy
 
 class Polalg:
   """
@@ -64,3 +65,33 @@ class Polalg:
     for i in range(0, d + 1):
       variables.extend(Polalg.generateVariablesDegree(i, n))
     return variables
+
+
+  def numMonomialsDegree(d, n):
+    """
+    Computes number of monomials of degree d in n variables.
+
+    Args:
+      d (int): degree of monomials
+      n (int): number of variables
+
+    Returns:
+      int: number of monomials
+    """
+
+    return scipy.misc.comb(d + n - 1, n - 1, exact = True)
+
+
+  def numMonomialsUpDegree(d, n):
+    """
+    Computes number of monomials of degrees up to d in n variables.
+
+    Args:
+      d (int): maximal degree of monomials
+      n (int): number of variables
+
+    Returns:
+      int: number of monomials
+    """
+
+    return scipy.misc.comb(d + n, n, exact = True)

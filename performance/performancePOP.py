@@ -133,10 +133,10 @@ if args.bench:
         # for different feasible points
         for i in N:
           # initialize the solver
-          problem = POPSolver(f, g, d)
+          problem = POPSolver(f, [g], d)
   
           # obtain some feasible point for the SDP problem
-          y0 = problem.getFeasiblePoint(1)
+          y0 = problem.getFeasiblePointFromRadius(1)
   
           # startup time
           timeStart = timeit.default_timer()
