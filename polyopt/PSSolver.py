@@ -3,10 +3,6 @@
 from .SDPSolver import SDPSolver
 from .polalg import Polalg
 from .linalg import Linalg
-#from math import ceil
-#from scipy.misc import comb
-#from numpy.random import uniform
-#from numpy.linalg import *
 import sys
 import copy
 import signal
@@ -80,6 +76,26 @@ class PSSolver:
     # set some class variables
     self.finished = False
     self.solved = False
+    self.printOut = False
+
+
+  def setPrintOutput(self, printOutput):
+    """
+    Enables or disables printing of the computation state.
+
+    Args:
+      printOuput (bool): True - enables the output, False - disables the output
+
+    Returns:
+      None
+    """
+
+    if printOutput:
+      self.logStdout.setLevel(logging.INFO)
+      self.printOut = True
+    else:
+      self.logStdout.setLevel(logging.WARNING)
+      self.printOut = False
 
 
   def solve(self):
@@ -124,29 +140,16 @@ class PSSolver:
     # run the iteration
     tHalfFloor = int(np.floor(self.t/2))
     numMonUptHalfFloor = Polalg.numVariablesUpDegree(tHalfFloor, self.n)
-    print('t = ', self.t)
+    self.logStdout.info('t = ' + str(self.t))
 
     # projection
     monAbsIdx = len(self.monAll) - 1
-    # REMOVE
-    #yAll = np.empty((len(monAll), numRepetitions))
-    #MAll = np.empty((numMonUptHalfFloor, numMonUptHalfFloor, numRepetitions))
-    #eAll = np.empty((numMonUptHalfFloor, numRepetitions))
-    #
     AOrig = [np.zeros((numMonUptHalfFloor, numMonUptHalfFloor)) for _ in range(len(self.monAll))]
     for i in range(0, numMonUptHalfFloor):
       for j in range(0, numMonUptHalfFloor):
         monomial = tuple(map(sum, zip(self.monAll[-i -1], self.monAll[-j -1])))
         idx = self.monAll.index(monomial)
         AOrig[idx][i, j] += 1
-    # REMOVE
-    #repetition = 0
-    #repetitionLimit = 0
-    #while repetition < numRepetitions:
-      #repetitionLimit += 1
-      #if repetitionLimit > numRepetitionsLimit:
-        #return array(())
-    #
     if permutation is None:
       varsPermuted = np.random.permutation(monAbsIdx).tolist()
       varsPermuted.append(monAbsIdx)
@@ -188,6 +191,7 @@ class PSSolver:
     e.sort()
 
     # get feasible point
+    numInstability = False
     if any(e <= 0):
       # SDP problem B with tau
       tau = -min(e).real + 1
@@ -199,14 +203,13 @@ class PSSolver:
       BtauMax = [np.zeros((1, 1)) for _ in varsToSolve]
       BtauMax.append(np.array([[-1]]))
       BtauMax[0] = np.array([[tau + 1]])
-      print('tau max:', tau + 1)
+      self.logStdout.info('tau max: ' + str(tau + 1))
       SDP = SDPSolver(np.concatenate((np.zeros((len(varsToSolve) - 1, 1)), [[1]]), axis=0), [B, Btau, BtauMax])
       SDP.setPrintOutput(False)
       SDP.bound(max([1e6, 1e3*tau]))
       SDP.eps = self.eps
 
       # run SDP solver with error handling
-      numInstability = False
       with np.errstate(invalid='raise'):
         signal.signal(signal.SIGALRM, self.signalAlarmHandler)
         signal.alarm(self.SDPTimeout)
@@ -214,25 +217,27 @@ class PSSolver:
           y = SDP.solve(np.concatenate((np.zeros((len(varsToSolve) - 1, 1)), [[tau]]), axis=0), SDP.dampedNewton)
           signal.alarm(0)
         except(FloatingPointError, np.linalg.linalg.LinAlgError, self.AlarmError) as e:
-          print(e)
+          self.logStdout.warning('NumericalError: ' + str(e))
           numInstability = True
       # check zero tau
       if not numInstability and y[-1] > self.eps:
         numInstability = True
-        print('Tau no zero. tau = ', y[-1])
+        self.logStdout.warning('NumericalError: Tau no zero. tau = ' + str(y[-1]))
       if SDP.solved:
         if any(np.array(SDP.eigenvalues('original')) < -self.eps):
           numInstability = True
-          print('Large negative eigenvalues!')
+          self.logStdout.warning('NumericalError: Large negative eigenvalues!')
         else:
           y = y[:-1]
     else:
       # find analytics center
-      SDP = polyopt.SDPSolver(zeros((len(varsToSolve) - 1, 1)), [A])
+      SDP = SDPSolver(np.zeros((len(varsToSolve) - 1, 1)), [A])
       SDP.setPrintOutput(False)
       SDP.bound(1e3)
       SDP.eps = self.eps
-      y = SDP.dampedNewton(zeros((len(varsToSolve) - 1, 1)))
+      y = SDP.dampedNewton(np.zeros((len(varsToSolve) - 1, 1)))
+
+    self.setPrintOutput(self.printOut)
 
     # check results of the SDP
     if not numInstability:
@@ -253,7 +258,7 @@ class PSSolver:
       M = np.sum([Ai*yi for Ai, yi in zip(AOrig, yOrig) if not np.isnan(yi)], axis=0)
       e = np.linalg.eigvals(M)
       if any(e < -self.eps):
-        print('Large negative eigenvalues after projecting back!')
+        self.logStdout.warning('NumericalError: Large negative eigenvalues after projecting back!')
         return False
     else:
       return False
@@ -283,14 +288,15 @@ class PSSolver:
           break
 
     # print ranks for s
-    for s in range(tHalfFloor + 1):
-      if sRanks[s] is None:
-        sRanks[s] = self.rankOfOrder(M, s)
-      sNumMons = Polalg.numVariablesUpDegree(s, self.n)
-      _, sValues, _ = np.linalg.svd(M[0:sNumMons, 0:sNumMons])
-      print('s = {}, rank = {}'.format(s, sRanks[s]))
-      print(sValues)
-      print()
+    if self.logStdout.isEnabledFor(logging.INFO):
+      for s in range(tHalfFloor + 1):
+        if sRanks[s] is None:
+          sRanks[s] = self.rankOfOrder(M, s)
+        sNumMons = Polalg.numVariablesUpDegree(s, self.n)
+        _, sValues, _ = np.linalg.svd(M[0:sNumMons, 0:sNumMons])
+        self.logStdout.info('s = {}, rank = {}'.format(s, sRanks[s]))
+        self.logStdout.info(str(sValues))
+        self.logStdout.info('')
 
     if done:
       # save results
@@ -362,11 +368,12 @@ class PSSolver:
         X[row, idx] = 1
       else:
         X[row, :] = -MrKer[MrKer[:, idx] == 1, Bidx]
-    e, V = np.linalg.eig(X)
-    print('X:', X)
+    _, V = np.linalg.eig(X)
     V = V/V[0, :]
-    print('V')
-    print(V)
+    if self.logStdout.isEnabledFor(logging.INFO):
+      self.logStdout.info('X: ' + str(X))
+      self.logStdout.info('V')
+      self.logStdout.info(V)
 
     # compute the rest of the variables
     sol = np.empty((self.numSolutions, self.n))*np.nan
@@ -376,7 +383,8 @@ class PSSolver:
         sol[:, col] = V[Bidx.index(i + 1), :]
       else:
         sol[:, col] = -MrKer[MrKer[:, i+1] == 1, Bidx].dot(V)
-    print(sol)
+    if self.logStdout.isEnabledFor(logging.INFO):
+      self.logStdout.info(str(sol))
 
     # save the solution
     self.solution = sol
