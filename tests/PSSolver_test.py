@@ -26,11 +26,9 @@ class TestPSSolver(unittest.TestCase):
     problem = PSSolver([f1])
 
     # solve and compare the results
-    good = True
     x = problem.solve()
     for s in solution:
-      good &= (norm(x - s, axis=1) < 10**(-3)).any()
-    self.assertTrue(good)
+      self.assertTrue((norm(x - s, axis=1) < 1e-3).any())
 
 
   def testSpecificProblemDimTwo(self):
@@ -50,8 +48,7 @@ class TestPSSolver(unittest.TestCase):
     good = True
     x = problem.solve()
     for s in solution:
-      good &= (norm(x - s, axis=1) < 10**(-3)).any()
-    self.assertTrue(good)
+      self.assertTrue((norm(x - s, axis=1) < 1e-3).any())
 
 
 if __name__ == '__main__':
