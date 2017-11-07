@@ -2,5 +2,5 @@ numpy
 sympy
 mpmath
 scipy
-gnuplot-py
+git+git://github.com/PavelTrutman/gnuplot.py-py3k.git#egg=gnuplot-py
 pycallgraph
