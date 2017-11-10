@@ -80,7 +80,7 @@ class Polalg:
       int: number of monomials
     """
 
-    return scipy.misc.comb(d + n - 1, n - 1, exact = True)
+    return scipy.special.comb(d + n - 1, n - 1, exact = True)
 
 
   def numVariablesUpDegree(d, n):
@@ -95,4 +95,4 @@ class Polalg:
       int: number of monomials
     """
 
-    return scipy.misc.comb(d + n, n, exact = True)
+    return scipy.special.comb(d + n, n, exact = True)
