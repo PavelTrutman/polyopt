@@ -47,6 +47,7 @@ class SDPSolver:
     """
     
     self.solved = False
+    self.iterations = -1
 
     # initialization of the problem
     self.c = c
@@ -256,6 +257,9 @@ class SDPSolver:
     # prepare x
     x = y - dot(FddInv, Fd)
 
+    # save number of iterations
+    self.iterations = k
+
     # plot auxiliary path
     if self.drawPlot:
       self.gnuplot.replot(gp.Data(y0All, y1All, title = 'Auxiliary path', with_ = 'points pt 1', filename = 'tmp/auxiliaryPath.dat'))
@@ -281,6 +285,8 @@ class SDPSolver:
       y0All = [y[0, 0]]
       y1All = [y[1, 0]]
 
+    self.xAC = y
+
     # gradient and hessian
     Fd, Fdd, _ = Utils.gradientHessian(self.AAll, y)
     FdLN = Utils.LocalNormA(Fd, Fdd)
@@ -301,6 +307,8 @@ class SDPSolver:
         y0All.append(y[0, 0])
         y1All.append(y[1, 0])
 
+      self.xAC = hstack((self.xAC, y))
+
       # gradient and hessian
       Fd, Fdd, A = Utils.gradientHessian(self.AAll, y)
       FdLN = Utils.LocalNormA(Fd, Fdd)
@@ -315,6 +323,9 @@ class SDPSolver:
       # breaking condition
       if FdLN <= self.beta:
         break
+
+    # save number of iterations
+    self.iterations = k
 
     # plot auxiliary path
     if self.drawPlot:
@@ -338,6 +349,8 @@ class SDPSolver:
     if self.drawPlot:
       x0All = [x[0, 0]]
       x1All = [x[1, 0]]
+
+    self.xMF = x
 
     # Main path-following scheme [Nesterov, p. 202]
     self.logStdout.info('\nMAIN PATH-FOLLOWING')
@@ -367,6 +380,8 @@ class SDPSolver:
         x0All.append(x[0, 0])
         x1All.append(x[1, 0])
 
+      self.xMF = hstack((self.xMF, x))
+
       if self.logStdout.isEnabledFor(logging.INFO):
         self.logStdout.info('t = ' + str(t))
         self.logStdout.info('x = ' + str(x))
@@ -387,6 +402,7 @@ class SDPSolver:
     self.solved = True
     self.result = x
     self.resultA = A
+    self.iterations += k
 
     # plot main path
     if self.drawPlot:
