@@ -77,6 +77,7 @@ class PSSolver:
     self.finished = False
     self.solved = False
     self.printOut = False
+    self.loggingLevel = 30
 
 
   def setPrintOutput(self, printOutput):
@@ -98,6 +99,21 @@ class PSSolver:
       self.printOut = False
 
 
+  def setLoggingLevel(self, level):
+    """
+    Sets the level of logging.
+
+    Args:
+      level (int): True - logging level
+
+    Returns:
+      None
+    """
+
+    self.logStdout.setLevel(level)
+    self.loggingLevel = level
+
+
   def solve(self):
     """
     Solve the problem.
@@ -107,6 +123,7 @@ class PSSolver:
     """
 
     done = False
+    numericalFails = 0
     while not done:
       oldT = self.t
       done = self.iteration()
@@ -208,6 +225,7 @@ class PSSolver:
       SDP.setPrintOutput(False)
       SDP.bound(max([1e6, 1e3*tau]))
       SDP.eps = self.eps
+      self.logStdout.setLevel(self.loggingLevel)
 
       # run SDP solver with error handling
       with np.errstate(invalid='raise'):
@@ -215,10 +233,12 @@ class PSSolver:
         signal.alarm(self.SDPTimeout)
         try:
           y = SDP.solve(np.concatenate((np.zeros((len(varsToSolve) - 1, 1)), [[tau]]), axis=0), SDP.dampedNewton)
-          signal.alarm(0)
         except(FloatingPointError, np.linalg.linalg.LinAlgError, self.AlarmError) as e:
           self.logStdout.warning('NumericalError: ' + str(e))
           numInstability = True
+        finally:
+          signal.alarm(0)
+          self.logStdout.setLevel(self.loggingLevel)
       # check zero tau
       if not numInstability and y[-1] > self.eps:
         numInstability = True
@@ -237,7 +257,7 @@ class PSSolver:
       SDP.eps = self.eps
       y = SDP.dampedNewton(np.zeros((len(varsToSolve) - 1, 1)))
 
-    self.setPrintOutput(self.printOut)
+    self.logStdout.setLevel(self.loggingLevel)
 
     # check results of the SDP
     if not numInstability:
@@ -391,6 +411,22 @@ class PSSolver:
     self.solved = True
 
 
+  def getRelaxOrder(self):
+    """
+    Returns last tried relaxation order.
+
+    Args:
+
+    Returns:
+      int: last tried relaxation order
+    """
+
+    if self.finished:
+      return self.t
+    else:
+      return self.t - 1
+
+
   def multiplyPolMon(self, polynomial, monomial):
     """
     Multiplies polynomial with monomial and returns it as a matrix.
@@ -434,9 +470,9 @@ class PSSolver:
     pass
 
 
-  def signalAlarmHandler(signum, frame):
+  def signalAlarmHandler(self, signum, frame):
     """
     Handler to the alarm signal.
     """
 
-    raise AlarmError('Timeout expired.')
+    raise PSSolver.AlarmError('Timeout expired.')
