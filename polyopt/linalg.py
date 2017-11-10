@@ -37,23 +37,23 @@ class Linalg:
       if lead >= columnCount:
         return matrix, pivots
       i = r
-      while abs(matrix[i, lead]) < tol:
-        i += 1
-        if i == rowCount:
-          i = r
-          lead += 1
-          if columnCount == lead:
-            return matrix, pivots
-      pivots.append(lead)
-      # swap rows
-      matrix[[i, r], :] = matrix[[r, i], :]
-      lv = matrix[r, lead]
-      matrix[r, :] = matrix[r, :]/float(lv)
-      for i in range(rowCount):
-        if i != r:
-          lv = matrix[i, lead]
-          matrix[i, :] = matrix[i, :] - lv*matrix[r, :]
-      lead += 1
+      i = np.argmax(abs(matrix[i:rowCount, lead])) + i
+      if abs(matrix[i, lead]) < tol:
+        lead += 1
+        if columnCount == lead:
+          return matrix, pivots
+      else:
+
+        pivots.append(lead)
+        # swap rows
+        matrix[[i, r], :] = matrix[[r, i], :]
+        lv = matrix[r, lead]
+        matrix[r, :] = matrix[r, :]/float(lv)
+        for i in range(rowCount):
+          if i != r:
+            lv = matrix[i, lead]
+            matrix[i, :] = matrix[i, :] - lv*matrix[r, :]
+        lead += 1
     return matrix, pivots
 
 
