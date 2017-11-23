@@ -161,12 +161,6 @@ class PSSolver:
 
     # projection
     monAbsIdx = len(self.monAll) - 1
-    AOrig = [np.zeros((numMonUptHalfFloor, numMonUptHalfFloor)) for _ in range(len(self.monAll))]
-    for i in range(0, numMonUptHalfFloor):
-      for j in range(0, numMonUptHalfFloor):
-        monomial = tuple(map(sum, zip(self.monAll[-i -1], self.monAll[-j -1])))
-        idx = self.monAll.index(monomial)
-        AOrig[idx][i, j] += 1
     if permutation is None:
       varsPermuted = np.random.permutation(monAbsIdx).tolist()
       varsPermuted.append(monAbsIdx)
@@ -204,7 +198,7 @@ class PSSolver:
     varsToSolve = varsToSolveNew
 
     # eigenvalues for y = 0
-    e = np.linalg.eigvals(A[0])
+    e = np.linalg.eigvalsh(A[0])
     e.sort()
 
     # get feasible point
@@ -261,22 +255,9 @@ class PSSolver:
 
     # check results of the SDP
     if not numInstability:
-      # project back
-      varsToSolvePermuted = [varsPermuted.index(var) for var in varsToSolve]
-      yAbs = np.concatenate(([[1]], y))
-      yOrig = np.empty((len(self.monAll), 1))*np.nan
-      for var in range(0, len(self.monAll)):
-        if var == monAbsIdx:
-          yOrig[var] = 1
-        elif var in varsToSolve:
-          yOrig[var] = y[varsToSolve.index(var)-1]
-        elif var in varsToReplace:
-          row = np.nonzero(Hrref[:, varsPermuted.index(var)])[0][0]
-          replaceRow = -Hrref[row, varsToSolvePermuted]
-          yOrig[var] = np.dot(replaceRow, yAbs)
-
-      M = np.sum([Ai*yi for Ai, yi in zip(AOrig, yOrig) if not np.isnan(yi)], axis=0)
-      e = np.linalg.eigvals(M)
+      # the moment matrix
+      M = np.sum([Ai*yi for Ai, yi in zip(A, np.vstack((np.array([[1]]), y))) if not np.isnan(yi)], axis=0)
+      e = np.linalg.eigvalsh(M)
       if any(e < -self.eps):
         self.logStdout.warning('NumericalError: Large negative eigenvalues after projecting back!')
         return False
