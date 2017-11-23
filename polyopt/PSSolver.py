@@ -6,6 +6,7 @@ from .linalg import Linalg
 import sys
 import copy
 import signal
+import timeit
 import logging
 import numpy as np
 
@@ -78,6 +79,8 @@ class PSSolver:
     self.solved = False
     self.printOut = False
     self.loggingLevel = 30
+    self.timeOffline = 0
+    self.timeOnline = 0
 
 
   def setPrintOutput(self, printOutput):
@@ -154,10 +157,15 @@ class PSSolver:
     if self.finished:
       return True
 
+    timeOfflineStart = timeit.default_timer()
+
     # run the iteration
     tHalfFloor = int(np.floor(self.t/2))
     numMonUptHalfFloor = Polalg.numVariablesUpDegree(tHalfFloor, self.n)
     self.logStdout.info('t = ' + str(self.t))
+
+    self.timeOffline += timeit.default_timer() - timeOfflineStart
+    timeOnlineStart = timeit.default_timer()
 
     # projection
     monAbsIdx = len(self.monAll) - 1
@@ -288,6 +296,8 @@ class PSSolver:
           done = True
           break
 
+    self.timeOnline += timeit.default_timer() - timeOnlineStart
+
     # print ranks for s
     if self.logStdout.isEnabledFor(logging.INFO):
       for s in range(tHalfFloor + 1):
@@ -342,6 +352,8 @@ class PSSolver:
     if not self.finished:
       raise ValueError('The iterations are not computed, so the solution can not be evaluated.')
 
+    timeOnlineStart = timeit.default_timer()
+
     # compute the solution
     for i, r in zip(range(len(self.sRanks)), self.sRanks):
       if r == self.numSolutions:
@@ -386,6 +398,8 @@ class PSSolver:
         sol[:, col] = -MrKer[MrKer[:, i+1] == 1, Bidx].dot(V)
     if self.logStdout.isEnabledFor(logging.INFO):
       self.logStdout.info(str(sol))
+
+    self.timeOnline += timeit.default_timer() - timeOnlineStart
 
     # save the solution
     self.solution = sol
