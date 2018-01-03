@@ -49,7 +49,7 @@ class Polalg:
       return variables
   
 
-  def generateVariablesUpDegree(d, n):
+  def generateVariablesUpDegree(d, n, reverse=False):
     """
     Generates whole set of variables up to given degree.
 
@@ -62,12 +62,13 @@ class Polalg:
     """
 
     variables = []
-    for i in range(0, d + 1):
+    r = range(0, d + 1) if not reverse else reversed(range(0, d + 1))
+    for i in r:
       variables.extend(Polalg.generateVariablesDegree(i, n))
     return variables
 
 
-  def numMonomialsDegree(d, n):
+  def numVariablesDegree(d, n):
     """
     Computes number of monomials of degree d in n variables.
 
@@ -79,10 +80,10 @@ class Polalg:
       int: number of monomials
     """
 
-    return scipy.misc.comb(d + n - 1, n - 1, exact = True)
+    return scipy.special.comb(d + n - 1, n - 1, exact = True)
 
 
-  def numMonomialsUpDegree(d, n):
+  def numVariablesUpDegree(d, n):
     """
     Computes number of monomials of degrees up to d in n variables.
 
@@ -94,4 +95,4 @@ class Polalg:
       int: number of monomials
     """
 
-    return scipy.misc.comb(d + n, n, exact = True)
+    return scipy.special.comb(d + n, n, exact = True)
